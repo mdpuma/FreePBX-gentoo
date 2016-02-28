@@ -1,0 +1,42 @@
+1. Required packages
+
+FIX:
+# emerge -av minicom asterisk nginx php mariadb PEAR-Console_Getopt sox mpg123 sudo
+
+2. Install part
+Reading /etc/asterisk/asterisk.conf...Error!
+Unable to read /etc/asterisk/asterisk.conf or it was missing a directories section
+
+FIX:
+# sed -i 's/[directories](!)/[directories]/' /etc/asterisk/asterisk.conf
+
+3. Cant install modules
+
+FIX:
+# emerge -av app-crypt/gnupg-1.4.19:0
+
+4. Cron permissions fix
+Unable to continue. Cron line added didn't remain in crontab on final check in /var/www/localhost/admin/libraries/BMO/Cron.class.php on line 103
+
+FIX: crontab 
+# chmod 777 /var/spool/cron/
+
+5. No pear-db
+
+FIX: pear-db
+# pear install DB-1.7.14
+
+6. Fix Permission for /etc/asterisk
+Unable to continue. file_put_contents(/etc/asterisk/extensions_additional.conf): failed to open stream: Permission denied in /var/www/localhost/admin/libraries/BMO/WriteConfig.class.php on line 168
+
+# chmod 777 /etc/asterisk -R
+
+7. Bad /dev/ttyUSB* privileges (for chan_dongle)
+FIX:
+# echo 'KERNEL=="ttyUSB*", MODE="777"' >> /etc/udev/rules.d/99-usb-dongle.rules
+# echo 'chmod 777 /var/lock' >> /etc/local.d/auto.start; chmod +x /etc/local.d/auto.start; rc-update add local
+
+8. SIM CARD wont to start ERROR at AT+CNUM
+
+FIX: Need to use asterisk-chan_dongle patched for ignoring AT+CNUM command
+https://github.com/mdpuma/asterisk-chan-dongle/commit/05367beb23e344f13803d3015c5b119425583bd8
