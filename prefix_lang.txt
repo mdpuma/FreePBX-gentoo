@@ -1,0 +1,12 @@
+[app-languages]
+include => app-languages-custom
+exten => 1,1,Noop(Changing Channel to language: ro (RO))
+exten => 1,n,Set(CHANNEL(language)=ro)
+exten => 1,n,Set(CALLERID(name)=(${CHANNEL(language)}) ${CALLERID(name)})
+exten => 1,n,Goto(ivr-2,s,1)
+
+exten => 2,1,Noop(Changing Channel to language: ru (RU))
+exten => 2,n,Set(CHANNEL(language)=ru)
+exten => 2,n,Set(CALLERID(name)=(${CHANNEL(language)}) ${CALLERID(name)})
+exten => 2,n,Goto(ivr-3,s,1)
+
