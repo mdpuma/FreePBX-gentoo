@@ -1,7 +1,7 @@
 1. Required packages
 
 FIX:
-# emerge -av minicom asterisk nginx php mariadb PEAR-Console_Getopt sox mpg123 sudo
+# emerge -av minicom asterisk nginx php mariadb pear PEAR-Console_Getopt sox mpg123 sudo
 
 2. Install part
 Reading /etc/asterisk/asterisk.conf...Error!
@@ -13,7 +13,7 @@ FIX:
 3. Cant install modules
 
 FIX:
-# emerge -av app-crypt/gnupg-1.4.19:0
+# emerge -av =app-crypt/gnupg-1.4.19:0
 
 4. Cron permissions fix
 Unable to continue. Cron line added didn't remain in crontab on final check in /var/www/localhost/admin/libraries/BMO/Cron.class.php on line 103
