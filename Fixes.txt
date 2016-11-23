@@ -40,3 +40,33 @@ FIX:
 
 FIX: Need to use asterisk-chan_dongle patched for ignoring AT+CNUM command
 https://github.com/mdpuma/asterisk-chan-dongle/commit/05367beb23e344f13803d3015c5b119425583bd8
+
+9. Dont create CDR records if call is from external sip
+
+; no cdr for from-sip-external
+[from-sip-external]
+exten => _.,1,NoOp(Received incoming SIP connection from unknown peer to ${EXTEN})
+exten => _.,n,Set(DID=${IF($["${EXTEN:1:2}"=""]?s:${EXTEN})})
+exten => _.,n,Goto(s,1)
+exten => s,1,GotoIf($["${ALLOW_SIP_ANON}"="yes"]?checklang:noanonymous)
+exten => s,n(checklang),GotoIf($["${SIPLANG}"!=""]?setlanguage:from-trunk,${DID},1)
+exten => s,n(setlanguage),Set(CHANNEL(language)=${SIPLANG})
+exten => s,n,Goto(from-trunk,${DID},1)
+exten => s,n(noanonymous),Set(TIMEOUT(absolute)=15)
+exten => s,n,Log(WARNING,"Rejecting unknown SIP connection from ${CHANNEL(recvip)}")
+exten => s,n,NoCDR()
+exten => s,n,Answer
+exten => s,n,Wait(2)
+exten => s,n,Playback(ss-noservice)
+exten => s,n,Playtones(congestion)
+exten => s,n,Congestion(5)
+exten => h,1,Hangup
+exten => i,1,Hangup
+exten => t,1,Hangup 
+
+
+10. Fix caller id if call is received from chan_dongle
+
+[from-pstn-custom]
+exten => _X.,1,Noop(CALLERID(name)=${CALLERID(name)} CALLERID(num)=${CALLERID(num)})
+exten => _X.,n,ExecIf($["${CALLERID(name):0:3}"="dc_"]?Set(CALLERID(name)=${CALLERID(num)}))

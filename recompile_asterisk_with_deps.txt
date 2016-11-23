@@ -1,0 +1,7 @@
+#!/bin/bash
+
+emerge -av mpg123 sox ffmpeg
+
+emerge -av dev-db/sqlite:3 dev-libs/popt dev-libs/libxml2 dev-libs/openssl sys-libs/ncurses sys-libs/zlib sys-libs/libcap virtual/libiconv sys-devel/gettext sys-devel/automake sys-devel/autoconf sys-devel/libtool mariadb
+emerge -av dev-libs/libltdl media-sound/gsm media-libs/flac media-libs/libvorbis media-libs/libogg media-libs/opus media-libs/opusfile media-sound/wavpack sys-devel/automake sys-devel/autoconf sys-devel/libtool
+emerge -av asterisk

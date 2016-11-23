@@ -1,0 +1,26 @@
+; we base on CALLERID(name) which is received from CRM in format "Firstname Lastname | XXX" where XXX is manager internal SIP number
+; also based on this we check if this is existent client
+
+
+[client_existent]
+exten => s,1,Set(MANAGER_ID=${CUT(CALLERID(name),|,2)})
+same => n,NoOp(MANAGER_ID=${MANAGER_ID})
+same => n,GotoIf($["${MANAGER_ID}"!=""]?ivr-4,s,1)
+same => n,Goto(app-announcement-6,s,1)
+
+[apel_manager]
+exten => s,1,Set(__RINGTIMER=15)
+same => n,Set(MANAGER_ID=${REPLACE(MANAGER_ID, )})
+same => n,Dial(SIP/${MANAGER_ID},14,tm(default))
+same => n,GotoIf($["${DIALSTATUS}"="BUSY"]?ext-group,1000,1)
+same => n,GotoIf($["${DIALSTATUS}"="NOANSWER"]?ext-group,1000,1)
+same => n,GotoIf($["${DIALSTATUS}"="CHANUNAVAIL"]?alege_manager,${MANAGER_ID},1)
+same => n,Hangup()
+
+[alege_manager]
+exten => 100,1,Goto(ext-group,1100,1)
+exten => 101,1,Goto(ext-group,1101,1)
+exten => 102,1,Goto(ext-group,1102,1)
+exten => 103,1,Goto(ext-group,1103,1)
+exten => 104,1,Goto(ext-group,1104,1)
+exten => 107,1,Goto(ext-group,1107,1)

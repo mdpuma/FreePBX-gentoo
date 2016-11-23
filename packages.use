@@ -1,4 +1,0 @@
-net-misc/asterisk http lua mysql srtp syslog
-dev-lang/php mysql opcache fpm pdo curl gd mbstring gettext
-media-sound/sox flac opus ogg wavpack
-media-video/ffmpeg vorbis
