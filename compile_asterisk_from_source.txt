@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# download asterisk
+cd /root
+wget http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-13-current.tar.gz
+tar xvf asterisk-13-current.tar.gz
+
+# patch with opus support
+git clone https://github.com/mdpuma/asterisk-opus.git -b asterisk-13.7
+cd asterisk-13.7
+
+cp -v ./asterisk-opus*/include/asterisk/* ./asterisk-13*/include/asterisk
+cp -v ./asterisk-opus*/codecs/* ./asterisk-13*/codecs
+cp -v ./asterisk-opus*/res/* ./asterisk-13*/res
+cp -v ./asterisk-opus*/*.patch ./asterisk-13*/
+
+cd asterisk-13*
+patch -p1 < asterisk.patch
+patch -p1 < enable_native_plc.patch
+./bootstrap.sh
+
+# compile asterisk
+./configure --prefix=/usr --with-pjproject-bundled
+make menuselect
+make -j5
+make install
+make installdirs # only for copying files
+
+# emerge required packages
+emerge -avu jansson opus
