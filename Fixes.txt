@@ -1,72 +1,21 @@
-1. Required packages
+BUG: at freepbx ./install part
+  Reading /etc/asterisk/asterisk.conf...Error!
+  Unable to read /etc/asterisk/asterisk.conf or it was missing a directories section
+FIX:Run: sed -i '/directories/s/(!)//' /etc/asterisk/asterisk.conf
 
-FIX:
-# emerge -av minicom asterisk nginx php mariadb pear PEAR-Console_Getopt sox mpg123 sudo
+BUG: Cant install freepbx modules
+FIX: Run: emerge -av =app-crypt/gnupg-1.4.19:0
 
-2. Install part
-Reading /etc/asterisk/asterisk.conf...Error!
-Unable to read /etc/asterisk/asterisk.conf or it was missing a directories section
+BUG: Cron permissions fix
+  Unable to continue. Cron line added didn't remain in crontab on final check in /var/www/localhost/admin/libraries/BMO/Cron.class.php on line 103
+FIX: Run: chmod 777 /var/spool/cron/
 
-FIX:
-# sed -i 's/[directories](!)/[directories]/' /etc/asterisk/asterisk.conf
+BUG: No pear-db
+FIX: Run:pear install DB-1.7.14
 
-3. Cant install modules
+BUG: Fix Permission for /etc/asterisk
+  Unable to continue. file_put_contents(/etc/asterisk/extensions_additional.conf): failed to open stream: Permission denied in /var/www/localhost/admin/libraries/BMO/WriteConfig.class.php on line 168
+FIX: Run: chmod 777 /etc/asterisk -R
 
-FIX:
-# emerge -av =app-crypt/gnupg-1.4.19:0
-
-4. Cron permissions fix
-Unable to continue. Cron line added didn't remain in crontab on final check in /var/www/localhost/admin/libraries/BMO/Cron.class.php on line 103
-
-FIX: crontab 
-# chmod 777 /var/spool/cron/
-
-5. No pear-db
-
-FIX: pear-db
-# pear install DB-1.7.14
-
-6. Fix Permission for /etc/asterisk
-Unable to continue. file_put_contents(/etc/asterisk/extensions_additional.conf): failed to open stream: Permission denied in /var/www/localhost/admin/libraries/BMO/WriteConfig.class.php on line 168
-
-# chmod 777 /etc/asterisk -R
-
-7. Bad /dev/ttyUSB* privileges (for chan_dongle)
-FIX:
-# echo 'KERNEL=="ttyUSB*", MODE="777"' >> /etc/udev/rules.d/99-usb-dongle.rules
-# echo 'chmod 777 /var/lock' >> /etc/local.d/auto.start; chmod +x /etc/local.d/auto.start; rc-update add local
-
-8. SIM CARD wont to start ERROR at AT+CNUM
-
-FIX: Need to use asterisk-chan_dongle patched for ignoring AT+CNUM command
-https://github.com/mdpuma/asterisk-chan-dongle/commit/05367beb23e344f13803d3015c5b119425583bd8
-
-9. Dont create CDR records if call is from external sip
-
-; no cdr for from-sip-external
-[from-sip-external]
-exten => _.,1,NoOp(Received incoming SIP connection from unknown peer to ${EXTEN})
-exten => _.,n,Set(DID=${IF($["${EXTEN:1:2}"=""]?s:${EXTEN})})
-exten => _.,n,Goto(s,1)
-exten => s,1,GotoIf($["${ALLOW_SIP_ANON}"="yes"]?checklang:noanonymous)
-exten => s,n(checklang),GotoIf($["${SIPLANG}"!=""]?setlanguage:from-trunk,${DID},1)
-exten => s,n(setlanguage),Set(CHANNEL(language)=${SIPLANG})
-exten => s,n,Goto(from-trunk,${DID},1)
-exten => s,n(noanonymous),Set(TIMEOUT(absolute)=15)
-exten => s,n,Log(WARNING,"Rejecting unknown SIP connection from ${CHANNEL(recvip)}")
-exten => s,n,NoCDR()
-exten => s,n,Answer
-exten => s,n,Wait(2)
-exten => s,n,Playback(ss-noservice)
-exten => s,n,Playtones(congestion)
-exten => s,n,Congestion(5)
-exten => h,1,Hangup
-exten => i,1,Hangup
-exten => t,1,Hangup 
-
-
-10. Fix caller id if call is received from chan_dongle
-
-[from-pstn-custom]
-exten => _X.,1,Noop(CALLERID(name)=${CALLERID(name)} CALLERID(num)=${CALLERID(num)})
-exten => _X.,n,ExecIf($["${CALLERID(name):0:3}"="dc_"]?Set(CALLERID(name)=${CALLERID(num)}))
+BUG: When receive call from number@IP, with used sip.domain.name as Domain, Microsip put number@ip-address of server instead of just number
+FIX: Add fromdomain=sip.domain.com to asterisk on global section

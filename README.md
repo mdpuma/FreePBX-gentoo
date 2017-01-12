@@ -7,57 +7,65 @@
     media-sound/sox flac opus ogg wavpack
     media-video/ffmpeg vorbis
 
-2. Install required packages
+2. Install asterisk & required packages
 
-    # emerge -av nginx php mariadb pear PEAR-Console_Getopt sox mpg123 sudo
+    # emerge -avu nginx php mariadb pear PEAR-Console_Getopt sox mpg123 sudo asterisk
     
 3. Install additional packages
 
     * for chan_dongle
-    # emerge -av picocom
+    # emerge -avu picocom
     
-4. Install asterisk
-
-    # emerge -av asterisk
-    
-5. Prepare & create mysql database
-
-    # mysql
-    CREATE DATABASE `asterisk`;
-    GRANT ALL ON `asterisk`.* TO asterisk@localhost IDENTIFIED BY "PASSWORD";
-
-6. Configure nginx & php-fpm
+4. Configure nginx & php-fpm
     * run:
     cd /etc/nginx; mkdir conf.d; touch freepbx.conf;
     
     * write in to freepbx.conf
     server {
-	listen  80;
+	listen 80;
 	server_name sip;
-	access_log /var/log/nginx/freepbx.log;
-        error_log /var/log/nginx/freepbx.error.log;
+	return 301 https://$host$request_uri;
+    }
+    
+    server {
+	listen  443 ssl http2;
+        server_name sip;
 #       disable_symlinks if_not_owner from=/var/www/html;
-	root /var/www/html;
+        root /var/www/html;
 
-	index index.php;
-	fastcgi_read_timeout 300s;
-	fastcgi_param  SCRIPT_FILENAME    $document_root$fastcgi_script_name;
+	ssl on;
+	ssl_certificate /etc/letsencrypt/live/sip/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/sip/privkey.pem;
+	ssl_stapling on;
+	ssl_stapling_verify on;
+	ssl_trusted_certificate /etc/letsencrypt/live/sip/chain.pem;
+	ssl_session_cache shared:SSL:10m;
+	ssl_ciphers HIGH:!aNULL:!MD5;
+	ssl_dhparam /etc/nginx/dhparam.pem;
+	ssl_protocols TLSv1.2 TLSv1.1 TLSv1;
 
-	gzip off;
+        index index.php;
+        fastcgi_read_timeout 300s;
+        fastcgi_param  SCRIPT_FILENAME    $document_root$fastcgi_script_name;
+
+        gzip off;
 	include fastcgi_params;
-	
-	allow 89.28.42.0/24;
-	allow 46.102.154.0/24;
-	allow 217.26.162.20;
-	deny all;
-	
-	location ~* \.php$ {
-		try_files    $uri =404;
-		fastcgi_pass unix:/var/run/php-fpm.sock;
-	}
-	location ~* /\.ht {
-		deny all;
-	}
+        location ^~ /admin {
+                allow 1.1.1.1;
+                deny all;
+                location ~* \.php$ {
+                        try_files    $uri =404;
+                        fastcgi_pass unix:/var/run/php-fpm.sock;
+                }
+        }
+
+        location ~* \.php$ {
+                try_files    $uri =404;
+                fastcgi_pass unix:/var/run/php-fpm.sock;
+        }
+        location ~* /\.ht {
+                deny all;
+        }
     }
 
     * append to php.ini
@@ -100,12 +108,13 @@
     #log-bin
     skip-networking
     
-    
+5. Generate dh-param for ssl_certificate
+    openssl dhparam -out /etc/nginx/dhparam.pem 2048
+
+
 6. Download and install FreePBX
 
     # cd /var/www
     # wget http://mirror.freepbx.org/modules/packages/freepbx/freepbx-13.0-latest.tgz -O freepbx-13.0-latest.tgz
     # tar xf freepbx-13.0-latest.tgz
     # 
-    
-7. Finish
