@@ -1,0 +1,15 @@
+https://voxlink.ru/kb/asterisk-configuration/diversion/
+
+
+sip.conf file:
+send_diversion=no
+
+context to rewrite cdr(did) for extensions.conf:
+
+[strip_sip_diversions]
+exten => s,1,Noop(DID from Diversion header is ${CUT(SIP_HEADER(Diversion),@,1)})
+same => n,Set(DiversionDID=${CUT(SIP_HEADER(Diversion),@,1)})
+same => n,Set(DiversionDID=${CUT(DiversionDID,:,2)})
+same => n,Set(CDR(did)=${DiversionDID})
+same => n,SIPRemoveHeader(Diversion)
+same => n,Goto(timeconditions,1,1) 
