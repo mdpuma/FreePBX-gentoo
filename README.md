@@ -9,9 +9,10 @@ media-video/ffmpeg vorbis
 
 2. Install asterisk & required packages
 
-# emerge -avu nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo asterisk
+# emerge -avu nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo asterisk exim
     
 3. Install additional packages for chan_dongle
+
 # emerge -avu picocom
 
 4. Configure nginx & php-fpm
@@ -36,9 +37,11 @@ mkdir /tmpfs; chmod 777 /tmpfs
 
 openssl dhparam -out /etc/nginx/dhparam.pem 2048
 
+6. Some fixes
 
-6. Download and install FreePBX
+ln -s /bin/ifconfig /sbin
+sed -i '/directories/s/(!)//' /etc/asterisk/asterisk.conf
 
-cd /var/www
-wget http://mirror.freepbx.org/modules/packages/freepbx/freepbx-13.0-latest.tgz -O freepbx-13.0-latest.tgz
-tar xf freepbx-13.0-latest.tgz
+7. Download and install FreePBX
+
+cd /var/www && wget http://mirror.freepbx.org/modules/packages/freepbx/freepbx-13.0-latest.tgz -O freepbx-13.0-latest.tgz && tar xf freepbx-13.0-latest.tgz

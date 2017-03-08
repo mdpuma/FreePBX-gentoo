@@ -19,3 +19,9 @@ FIX: Run: chmod 777 /etc/asterisk -R
 
 BUG: When receive call from number@IP, with used sip.domain.name as Domain, Microsip put number@ip-address of server instead of just number
 FIX: Add fromdomain=sip.domain.com to asterisk on global section
+
+BUG: When you dial SIP extension from IVR or Queues, extension will be dialed with 'unset' timeout (300seconds), only if no additional conditions.
+FIX: Write extensions_override_freepbx.conf:
+
+[macro-exten-vm]
+exten => s,5,Set(RT=${IF($["${ARG1}"!="novm" | "${DB(CFU/${EXTTOCALL})}"!="" | "${DB(CFB/${EXTTOCALL})}"!="" | "${ARG3}"="1" | "${ARG4}"="1" | "${ARG5}"="1"]?${RINGTIMER}:14)})
