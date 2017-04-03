@@ -23,6 +23,8 @@ echo php-fpm -y /etc/php/fpm-php5.6/php-fpm.conf >> /etc/local.d/php.start; chmo
 rc-update add local
 rc-update add nginx
 rc-update add mysql
+rc-update add php-fpm
+rc-update add asterisk
 
 # replace from /etc/mysql/my.cnf
 #log-bin
@@ -45,3 +47,9 @@ sed -i '/directories/s/(!)//' /etc/asterisk/asterisk.conf
 7. Download and install FreePBX
 
 cd /var/www && wget http://mirror.freepbx.org/modules/packages/freepbx/freepbx-13.0-latest.tgz -O freepbx-13.0-latest.tgz && tar xf freepbx-13.0-latest.tgz
+
+
+* Configure exim
+
+mkdir /var/log/exim && chown mail:mail /var/log/exim
+rc-update add exim && /etc/init.d/exim restart
