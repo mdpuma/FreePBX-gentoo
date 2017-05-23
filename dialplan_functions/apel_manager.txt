@@ -1,0 +1,20 @@
+; we base on CALLERID(name) which is received from CRM in format "Firstname Lastname | XXX" where XXX is manager internal SIP number
+; also based on this we check if this is existent client
+
+[selectare_manager]
+exten => s,1,Noop(Detectare numar operator CALLERID:${CALLERID(name)})
+same => n,Set(MANAGER_ID=${CUT(CALLERID(name),|,2)})
+same => n,Set(MANAGER_ID=${REPLACE(MANAGER_ID, )})
+same => n,GotoIf($["${MANAGER_ID}"=""]?ext-queues,1000,1)
+same => n,Gosub(apel_manager,${MANAGER_ID},1)
+same => n,Goto(ext-queues,1000,1)
+same => n,Hangup()
+exten => h,1,Macro(hangupcall)
+
+[apel_manager]
+exten => _XXX,1,Noop(Incercare apelare operator ${EXTEN})
+same => n,Set(CDR(cnum)=${CALLERID(number)})
+same => n,Set(CDR(cnam)=${CALLERID(name)})
+; same => n,Gosub(sub-record-check,s,1(in,${MANAGER_ID},force))
+same => n,Dial(SIP/${EXTEN},8,tm(default))
+same => n,Return()

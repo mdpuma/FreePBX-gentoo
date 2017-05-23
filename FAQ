@@ -1,0 +1,3 @@
+Q: When call is placed through outbound trunk with force trunk cid option, then callee receive sip header P-Asserted-Identity. 
+  This is caused by CONNECTEDLINE update from asterisk. CID:<OUTBOUND TRUNK CID NUMBER>
+A: Go to FreePBX -> Advanced settigs and disable: 'Display CallerID on Calling Phone'

@@ -1,0 +1,11 @@
+; Dial options B(answer-smshook^s^1)
+
+; notificare SMS dupa apel ANSWERED
+[answer-smshook]
+exten => s,1,Set(CHANNEL(hangup_handler_push)=hangup-smshook,s,1)
+same => n,Return()
+
+[hangup-smshook]
+exten => s,1,System(/var/lib/asterisk/bin/send_sms.php --src="${CDR(src)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}")
+same => n,Return()
+ 

@@ -1,0 +1,6 @@
+[strip_sip_diversions]
+exten => s,1,Noop(DID from Diversion header is ${CALLERID(rdnis)})
+same => n,GotoIf($["${CALLERID(rdnis)}"=""]?return)
+same => n,Set(CDR(did)=${CALLERID(rdnis)})
+same => n,Set(CALLERID(rdnis)=)
+same => n(return),Return()

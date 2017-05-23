@@ -10,3 +10,8 @@ same => n,GotoIf($["${DIALSTATUS}"="BUSY"]?ext-queues,1000,1)
 same => n,GotoIf($["${DIALSTATUS}"="NOANSWER"]?ext-queues,1000,1)
 same => n,GotoIf($["${DIALSTATUS}"="CHANUNAVAIL"]?ext-queues,1000,1)
 same => n,Hangup()
+
+
+[apel_manager]
+exten => _XXX,1,Dial(SIP/${EXTEN},14,tm(default)B(answer-smshook^s^1))
+same => n,Return
