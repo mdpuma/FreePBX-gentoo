@@ -3,3 +3,4 @@ exe:/usr/sbin/nginx
 exe:/usr/sbin/mysqld
 exe:/usr/sbin/asterisk
 exe:/usr/bin/dirmngr
+exe:/usr/bin/gpg

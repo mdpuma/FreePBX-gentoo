@@ -10,6 +10,9 @@ media-video/ffmpeg vorbis
 2. Install asterisk & required packages
 
 # emerge -avu nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo asterisk exim
+
+# for csf
+# emerge -avu dev-perl/libwww-perl
     
 3. Install additional packages for chan_dongle
 
