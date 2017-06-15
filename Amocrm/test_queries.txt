@@ -1,0 +1,1 @@
+https://sip.loc/amocrm.php?_login=<login>&_secret=<pwd>&_action=status 
