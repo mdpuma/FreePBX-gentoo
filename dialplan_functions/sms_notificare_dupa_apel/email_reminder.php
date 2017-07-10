@@ -45,6 +45,9 @@ if ($o['action'] == 'store') {
     fclose($fp);
 }
 elseif ($o['action'] == 'sendemail') {
+    if (!is_file($filedat)) {
+        die("file $filedat is not exists");
+    }
     $mail = new PHPMailer();
     $mail->From = $EMAIL_FROM;
     $mail->FromName = 'FreePBX';
@@ -58,6 +61,7 @@ elseif ($o['action'] == 'sendemail') {
     }
     else {
         echo "Message sent!";
+        unlink($filedat);
     }
 }
 
