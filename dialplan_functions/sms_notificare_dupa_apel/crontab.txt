@@ -1,0 +1,2 @@
+ 
+0 9 * * *       php /var/lib/asterisk/bin/email_reminder.php --action=sendemail >/dev/null
