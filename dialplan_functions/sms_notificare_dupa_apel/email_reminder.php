@@ -45,23 +45,26 @@ if ($o['action'] == 'store') {
     fclose($fp);
 }
 elseif ($o['action'] == 'sendemail') {
-    if (!is_file($filedat)) {
-        die("file $filedat is not exists");
-    }
     $mail = new PHPMailer();
     $mail->From = $EMAIL_FROM;
     $mail->FromName = 'FreePBX';
-    $mail->Body = 'Gasiti atasament';
     $mail->Subject = 'PBX: apeluri pierdute';
     $emails = explode(',', $EMAIL_TO);
     foreach($emails as $i) $mail->AddAddress($i);
-    $mail->AddAttachment($filedat, basename($filedat));
+    
+    if (!is_file($filedat)) {
+        $mail->Body = 'Nu sunt inregistrate apeluri pierdute';
+    } else {
+        $mail->Body = 'Gasiti atasament';
+        $mail->AddAttachment($filedat, basename($filedat));
+    }
+    
     if (!$mail->send()) {
         echo "Mailer Error: " . $mail->ErrorInfo;
     }
     else {
         echo "Message sent!";
-        unlink($filedat);
+        @unlink($filedat);
     }
 }
 
