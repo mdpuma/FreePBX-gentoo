@@ -11,10 +11,10 @@ for input in $FILES; do
 	output="`echo $input | sed -E 's/wav/ogg/'`"
 	recording_name="`basename $input`"
 	echo "Processing $input"
-	rm $input -v
 	sox $input $output
 	chown asterisk:asterisk $output
 	mysql asteriskcdrdb -e "update cdr set recordingfile=REPLACE(recordingfile, 'wav','ogg') where recordingfile='$recording_name';"
+	rm $input -v
 done
 
 # mysql asteriskcdrdb -e "update cdr set recordingfile=REPLACE(recordingfile, 'wav','ogg');"
