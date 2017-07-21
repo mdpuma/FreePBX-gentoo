@@ -1,6 +1,7 @@
 #!/usr/bin/env php
 <?php
 require_once 'PHPMailer/class.phpmailer.php';
+require_once 'PHPMailer/class.smtp.php';
 
 // System(/var/lib/asterisk/bin/email_reminder.php --action=store --src="${CDR(src)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}")
 
@@ -15,6 +16,12 @@ $o = getopt('', array(
 ));
 $EMAIL_FROM = 'sip@iphost.md';
 $EMAIL_TO = 'admin@iphost.md';
+
+$EMAIL_SMTP = 0;
+$EMAIL_USERNAME = '';
+$EMAIL_PASSWORD = '';
+$EMAIL_HOST = '';
+
 $filedat = '/tmp/apeluri_pierdute.csv';
 ini_set('date.timezone', 'Europe/Chisinau');
 
@@ -46,6 +53,22 @@ if ($o['action'] == 'store') {
 }
 elseif ($o['action'] == 'sendemail') {
     $mail = new PHPMailer();
+    if ($EMAIL_SMTP == 1) {
+        $mail->isSMTP();
+        $mail->Host = $EMAIL_HOST;
+        $mail->Port = 587;
+        $mail->SMTPSecure = '';
+        $mail->SMTPAuth = true;
+        $mail->Username = $EMAIL_USERNAME;
+        $mail->Password = $EMAIL_PASSWORD;
+        // $mail->SMTPDebug = 2;
+        $mail->SMTPOptions = array(
+            'ssl' => array(
+                'verify_peer' => false
+            )
+        );
+    }
+    
     $mail->From = $EMAIL_FROM;
     $mail->FromName = 'FreePBX';
     $mail->Subject = 'PBX: apeluri pierdute';

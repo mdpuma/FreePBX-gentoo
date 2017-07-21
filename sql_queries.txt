@@ -1,0 +1,7 @@
+SHOW INCOMING BILLED MINUTES from 2017-06-01 to 2017-07-01
+
+  SELECT SUM(`billsec`)/60 as minutes FROM `cdr` WHERE `disposition` = 'ANSWERED' AND `billsec` > '3' AND `calldate` > '2017-06-01' AND `calldate` < '2017-07-01' AND `channel` NOT REGEXP 'SIP/[0-9]+'
+
+SHOW OUTGOING BILLED MINUTES from 2017-06-01 to 2017-07-01
+
+  SELECT SUM(`billsec`)/60 as minutes FROM `cdr` WHERE `disposition` = 'ANSWERED' AND `billsec` > '3' AND `calldate` > '2017-06-01' AND `calldate` < '2017-07-01' AND `channel` REGEXP 'SIP/[0-9]+'
