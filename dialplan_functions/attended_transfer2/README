@@ -1,0 +1,3 @@
+This is snippet for Asterisk Attended transfer with preserving CALLERID of call peer
+
+By default, when attended transfer is happen, 3rd person see CALLERID of 2nd person but not of 1st person
