@@ -1,0 +1,9 @@
+ 
+[from-internal-additional]
+exten => 600,1,Noop(Apel manager)
+same => n,Goto(selectare_manager,s,1)
+
+[transfer-context]
+same => n,GotoIf($["${EXTEN}"="600"]?label1)
+same => n,Dial(SIP/${EXTEN},20,Tt)
+same => n(label1),Goto(client_existent,s,1)

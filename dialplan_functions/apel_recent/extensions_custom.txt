@@ -6,7 +6,11 @@ exten => s,1,Set(CHANNEL(hangup_handler_wipe)=hangup-hook,s,1)
 same => n,Return()
 
 [hangup-hook]
+; for asterisk 11
 exten => s,1,System(/var/lib/asterisk/bin/apel_recent.php --action=store --src="${CDR(src)}" --dst="${CDR(dst)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
+
+; for asterisk 13
+exten => s,1,System(/var/lib/asterisk/bin/apel_recent.php --action=store --src="${CDR(cnum)}" --dst="${CDR(dnid)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
 same => n,Return()
 
 [apel_recent]
