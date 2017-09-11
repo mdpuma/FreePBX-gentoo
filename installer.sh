@@ -7,6 +7,13 @@ EMAIL='xxx@xxx.xxx'
 
 EMERGE_ARGS='-avu'
 
+function prestage() {
+    wget $URL/etc-config/packages.use -O /etc/portage/package.use
+    emerge --sync
+    emerge $EMERGE_ARGS --autounmask-continue portage
+    emerge $EMERGE_ARGS --autounmask-continue nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo asterisk exim =app-crypt/gnupg-1.4.21
+}
+
 function install_csf() {
     emerge $EMERGE_ARGS --autounmask-continue dev-perl/libwww-perl
 }
@@ -87,6 +94,7 @@ function do_install_freepbx() {
     cd /var/www/freepbx
     /etc/init.d/asterisk restart
     ./install --dbpass=$DBPASS --no-interaction
+    wget -O - $URL/cdr_config.php | php
 }
 
 function configure_exim() {
@@ -102,12 +110,7 @@ function configure_acpid() {
     /etc/init.d/acpid restart
 }
 
-
-
-wget $URL/etc-config/packages.use -O /etc/portage/package.use
-
-emerge $EMERGE_ARGS --autounmask-continue nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo asterisk exim =app-crypt/gnupg-1.4.21
-
+prestage
 configure_nginx $DOMAIN
 do_letsencrypt $DOMAIN $EMAIL
 configure_nginx2 $DOMAIN
