@@ -2,7 +2,7 @@
 $src = '/etc/asterisk/res_odbc_additional.conf';
 $dst = '/etc/asterisk/cdr_mysql.conf';
 
-$array = parse_ini_file('res_odbc_additional.conf', true);
+$array = parse_ini_file($src, true);
 
 $array2 = $array['asteriskcdrdb'];
 foreach ($array2 as $i => $j) {
