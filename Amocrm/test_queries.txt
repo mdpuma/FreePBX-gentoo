@@ -1,1 +1,11 @@
 https://sip.loc/amocrm.php?_login=<login>&_secret=<pwd>&_action=status 
+
+https://sip.loc/amocrm.php?_login=amocrm&_secret=asd&_action=cdr&date_from=1505401200&date_to=1505408800
+
+Arguments:
+    date_from, date_to are unixtimestamp UTC
+    result array are unixtimestamp UTC
+    debug=1 display cdr in tab separated values
+    
+Return:
+    array are unixtimestamp UTC

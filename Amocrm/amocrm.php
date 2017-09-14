@@ -25,11 +25,14 @@ define('AC_DB_CS','mysql:host=localhost;port=3306;dbname=asteriskcdrdb');
 define('AC_DB_UNAME','freepbxuser');
 define('AC_DB_UPASS','');
 define('AC_TIMEOUT',0.75);
-define('AC_RECORD_PATH','https://sip.iphost.md/monitor/%Y/%m/%d/#');
-define('AC_TIME_DELTA',2); // hours. Ex. GMT+4 = 4
+define('AC_RECORD_PATH','https://sip.loc/monitor/%Y/%m/%d/#');
+define('AC_TIME_DELTA',3); // hours. Ex. GMT+4 = 4
 
-$did_numbers = array('000267','009984','009985','068222512');
-$non_exten_numbers = array('600','601','700','702','703','800','900','901');
+// available only with FreePBX due CDR['cnum'] are inserted into CDR due FreePBX dialplan
+define('REPLACE_SRC_WITH_CNUM', true); // used for attented_transfer2 with preserving callerid of party A
+
+$did_numbers = array('22210021', '22011021');
+$non_exten_numbers = array('10', '20', '600');
 
 $db_cs=AC_DB_CS;
 $db_u=!strlen(AC_DB_UNAME)?NULL:AC_DB_UNAME;
@@ -131,7 +134,7 @@ if ($action==='status'){ // list channels status
 		if ($date_from<time()-10*24*3600) $date_from=time()-7*24*3600; //retr. not more than 10d before
 		$date_from=($date_from?$date_from+AC_TIME_DELTA*3600:0); //default 01-01-1970
 		$date_to  =($date_to  ?$date_to  +AC_TIME_DELTA*3600:time()+AC_TIME_DELTA*3600);//default now()
-		$sth = $dbh->prepare('SELECT disposition,channel,dstchannel,calldate, src,dst,duration,billsec,uniqueid,recordingfile FROM cdr WHERE disposition=\'ANSWERED\' AND billsec>=:minsec AND calldate> :from AND calldate< :to');
+		$sth = $dbh->prepare('SELECT disposition,channel,dstchannel,calldate, src,dst,duration,billsec,uniqueid,recordingfile,cnum FROM cdr WHERE disposition=\'ANSWERED\' AND billsec>=:minsec AND calldate> :from AND calldate< :to');
 		// BETWEEN is illegal on some bcknds
 		header("X-REAL_DATE:" . gmdate('Y-m-d H:i:s',$date_from).'@'. gmdate('Y-m-d H:i:s',$date_to));
 		$sth->bindValue(':from', date('Y-m-d H:i:s',$date_from) );
@@ -147,6 +150,12 @@ if ($action==='status'){ // list channels status
 			if(in_array($v['src'], $did_numbers) && preg_match("/^SIP\/([0-9]+)/", $v['channel'], $matches)) {
 				$r[$k]['src'] = $matches[1];
 			}
+			
+			if(REPLACE_SRC_WITH_CNUM==true) {
+				if(!empty($v['cnum']))
+					$r[$k]['src'] = $v['cnum'];
+			}
+			
 			// fix: replace dst when dst is equal to ring-group, using $non_exten_numbers values
 			if(in_array($v['dst'], $non_exten_numbers) && preg_match("/^SIP\/([0-9]+)/", $v['dstchannel'], $matches)) {
 				$r[$k]['dst'] = $matches[1];
@@ -164,6 +173,15 @@ if ($action==='status'){ // list channels status
 			}
 			unset($r[$k]['channel']);
 			unset($r[$k]['dstchannel']);
+			unset($r[$k]['cnum']);
+		}
+		if($_GET['debug']) {
+			foreach($r as $j) {
+				foreach($j as $i)
+				    echo $i."\t";
+				echo "\n";
+			}
+			die();
 		}
 		answer(array('status'=>'ok','data'=>$r),true);
 	} catch (PDOException $e) {

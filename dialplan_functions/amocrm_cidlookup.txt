@@ -1,4 +1,4 @@
 [cidlookup]
 ; https://crm.amocrm.com/private/acceptors/asterisk_new/?number=<NUMBER>&USER_LOGIN=<EMAIL>&USER_HASH=<HASH>
-exten => cidlookup_1,1,Set(CALLERID(name)=${SHELL(wget -O - --quiet https://crm.amocrm.com/private/acceptors/asterisk_new/?number=<NUMBER>\&USER_LOGIN=<EMAIL>\&USER_HASH=<HASH>)})
+exten => cidlookup_1,1,Set(CALLERID(name)=${SHELL(wget -O - --quiet https://crm.amocrm.com/private/acceptors/asterisk_new/?number=${CALLERID(num)}\&USER_LOGIN=<EMAIL>\&USER_HASH=<HASH>)})
 same => n,Return()
