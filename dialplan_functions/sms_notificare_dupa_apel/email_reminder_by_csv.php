@@ -10,7 +10,7 @@
 // same => n,Return()
 //
 // [hangup-hook2]
-// exten => s,1,System(/var/lib/asterisk/bin/email_reminder_by_csv.php --action=notifynow --src="${CDR(src)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
+// exten => s,1,System(/var/lib/asterisk/bin/email_reminder_by_csv.php --action=notifynow --src="${CDR(src)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" --manager="${MANAGER_ID}" 2>&1 | tee -a /tmp/asterisk.php.log)
 // same => n,Return()
 require_once 'PHPMailer/class.phpmailer.php';
 require_once 'PHPMailer/class.smtp.php';
@@ -37,7 +37,6 @@ $filedat = '/tmp/apeluri_pierdute.csv';
 
 // for email notification about lost calls by individual pair of manager=> email
 $managers_file = '/var/lib/asterisk/bin/managers.csv';
-$default_email = 'aa@aa.aa';
 
 ini_set('date.timezone', 'Europe/Chisinau');
 ini_set('display_errors', 'Off');
@@ -138,6 +137,10 @@ elseif ($o['action'] == 'notifynow') {
         );
     }
 
+    if(empty($o['manager'])) {
+        $o['manager'] = get_manager_by_callerid($o['srcname']);
+    }
+    
     $mail->From = $EMAIL_FROM;
     $mail->FromName = 'FreePBX';
     $mail->Subject = 'PBX: apel pierdut: ' . $o['src'];
@@ -159,7 +162,7 @@ EOF;
 }
 
 function get_email_by_csv($extension, $csvfile) {
-    global $default_email;
+    global $EMAIL_TO;
     $result = '';
     if (($handle = fopen($csvfile, "r")) !== false) {
         while (($data = fgetcsv($handle, 100, ",")) !== false) {
@@ -170,7 +173,14 @@ function get_email_by_csv($extension, $csvfile) {
         }
         fclose($handle);
     }
-    return $default_email;
+    return $EMAIL_TO;
+}
+
+function get_manager_by_callerid($callerid) {
+    if(preg_match("/[^|]+ \| ([0-9]+)/", $callerid, $matches)) {
+        return $matches[1];
+    }
+    return '';
 }
 
 // +------------------------------+//
