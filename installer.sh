@@ -5,7 +5,8 @@ DBPASS='xxxxxx'
 DOMAIN='sip.xxx.xxx'
 EMAIL='xxx@xxx.xxx'
 
-EMERGE_ARGS='-avu'
+# EMERGE_ARGS='-avu'
+EMERGE_ARGS='-u'
 
 function prestage() {
     wget $URL/etc-config/packages.use -O /etc/portage/package.use
@@ -40,6 +41,10 @@ function configure_autostart() {
 }
 
 function configure_mysql() {
+    if [ -f /root/.my.cnf ]; then
+        echo "mysqld is configured, skipping\n"
+        exit
+    fi
     sed -iE 's/^\(log-bin\)/#\1/' /etc/mysql/my.cnf
     sed -iE 's/^tmpdir.*/tmpdir = \/tmpfs/' /etc/mysql/my.cnf
     
@@ -85,6 +90,7 @@ function do_preinstall_fixes() {
     sed -i '/directories/s/(!)//' /etc/asterisk/asterisk.conf
     wget $URL/etc-config/logrotate-asterisk -O /etc/logrotate.d/asterisk
     rm /etc/freepbx.conf /etc/amportal.conf -v
+    rm /etc/asterisk/* -rfv
 }
 
 function do_install_freepbx() {
@@ -92,6 +98,7 @@ function do_install_freepbx() {
     [ ! -f "freepbx-13.0-latest.tgz" ] && wget http://mirror.freepbx.org/modules/packages/freepbx/freepbx-13.0-latest.tgz -O freepbx-13.0-latest.tgz
     tar xf freepbx-13.0-latest.tgz
     cd /var/www/freepbx
+    rm /etc/asterisk/* -rfv
     /etc/init.d/asterisk restart
     ./install --dbpass=$DBPASS --no-interaction
     wget -O - $URL/cdr_config.php | php
@@ -100,9 +107,9 @@ function do_install_freepbx() {
 function configure_exim() {
     mkdir /var/log/exim && chown mail:mail /var/log/exim
     cd /etc/exim && cp exim.conf.dist exim.conf 
-    rc-update add exim 
+    rc-update add exim
+    wget $URL/etc-config/exim.conf -O /etc/logrotate.d/asterisk
     /etc/init.d/exim restart
-    echo "add local_interfaces = 127.0.0.1 in to /etc/exim/exim.conf to disable listening on public ip address"
 }
 function configure_acpid() {
     emerge $EMERGE_ARGS acpid
