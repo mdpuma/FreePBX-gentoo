@@ -43,7 +43,7 @@ function configure_autostart() {
 function configure_mysql() {
     if [ -f /root/.my.cnf ]; then
         echo "mysqld is configured, skipping\n"
-        exit
+        return
     fi
     sed -iE 's/^\(log-bin\)/#\1/' /etc/mysql/my.cnf
     sed -iE 's/^tmpdir.*/tmpdir = \/tmpfs/' /etc/mysql/my.cnf
@@ -91,6 +91,8 @@ function do_preinstall_fixes() {
     wget $URL/etc-config/logrotate-asterisk -O /etc/logrotate.d/asterisk
     rm /etc/freepbx.conf /etc/amportal.conf -v
     rm /etc/asterisk/* -rfv
+    rm /var/www/html/* -rf
+    mysql -e 'drop database asterisk'
 }
 
 function do_install_freepbx() {
@@ -98,10 +100,10 @@ function do_install_freepbx() {
     [ ! -f "freepbx-13.0-latest.tgz" ] && wget http://mirror.freepbx.org/modules/packages/freepbx/freepbx-13.0-latest.tgz -O freepbx-13.0-latest.tgz
     tar xf freepbx-13.0-latest.tgz
     cd /var/www/freepbx
-    rm /etc/asterisk/* -rfv
     /etc/init.d/asterisk restart
     ./install --dbpass=$DBPASS --no-interaction
     wget -O - $URL/cdr_config.php | php
+    /etc/init.d/asterisk restart
 }
 
 function configure_exim() {
