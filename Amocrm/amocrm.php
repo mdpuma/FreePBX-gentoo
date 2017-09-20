@@ -31,6 +31,9 @@ define('AC_TIME_DELTA',3); // hours. Ex. GMT+4 = 4
 // available only with FreePBX due CDR['cnum'] are inserted into CDR due FreePBX dialplan
 define('REPLACE_SRC_WITH_CNUM', true); // used for attented_transfer2 with preserving callerid of party A
 
+// hide internal calls
+define('HIDE_INTERNAL_CALLS', true);
+
 $did_numbers = array('22210021', '22011021');
 $non_exten_numbers = array('10', '20', '600');
 
@@ -154,6 +157,11 @@ if ($action==='status'){ // list channels status
 			if(REPLACE_SRC_WITH_CNUM==true) {
 				if(!empty($v['cnum']))
 					$r[$k]['src'] = $v['cnum'];
+			}
+			if(HIDE_INTERNAL_CALLS==true) {
+				if(intval($v['src']) < 10000 && intval($v['dst']) < 10000) {
+					unset($r[$k]);
+				}
 			}
 			
 			// fix: replace dst when dst is equal to ring-group, using $non_exten_numbers values
