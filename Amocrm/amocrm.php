@@ -158,11 +158,6 @@ if ($action==='status'){ // list channels status
 				if(!empty($v['cnum']))
 					$r[$k]['src'] = $v['cnum'];
 			}
-			if(HIDE_INTERNAL_CALLS==true) {
-				if(intval($v['src']) < 10000 && intval($v['dst']) < 10000) {
-					unset($r[$k]);
-				}
-			}
 			
 			// fix: replace dst when dst is equal to ring-group, using $non_exten_numbers values
 			if(in_array($v['dst'], $non_exten_numbers) && preg_match("/^SIP\/([0-9]+)/", $v['dstchannel'], $matches)) {
@@ -179,6 +174,14 @@ if ($action==='status'){ // list channels status
 			} elseif(preg_match("/^373.+/", $v['dst'])) {
 				$r[$k]['dst']='+'.$v['dst'];
 			}
+			
+			// fix: hide internal calls
+			if(HIDE_INTERNAL_CALLS==true) {
+				if(intval($v['src']) < 10000 && intval($v['dst']) < 10000) {
+					unset($r[$k]);
+				}
+			}
+			
 			unset($r[$k]['channel']);
 			unset($r[$k]['dstchannel']);
 			unset($r[$k]['cnum']);
