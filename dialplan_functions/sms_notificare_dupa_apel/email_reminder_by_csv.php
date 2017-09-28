@@ -134,16 +134,16 @@ elseif ($o['action'] == 'notifynow') {
     send_email();
     
 //     // send telegram message
-//     $message = <<<EOF
-// Salut!
-// Apel pierdut de la ${o['src']} (${o['srcname']}) 
-// EOF;
-//     send_telegram_msg($message);
+//     send_telegram_msg();
 }
 
-function send_telegram_msg($msg) {
+function send_telegram_msg() {
     global $config;
-    system('echo "'.$msg.'" | '.$config['telegram']['script'].' '.$config['telegram']['destination']);
+    $message = <<<EOF
+Salut!
+Apel pierdut de la ${o['src']} (${o['srcname']}) 
+EOF;
+    system('echo "'.$message.'" | '.$config['telegram']['script'].' '.$config['telegram']['destination']);
 }
 
 function send_email() {
