@@ -33,10 +33,10 @@ $o = getopt('', array(
 ));
 
 // How much time store recent calls
-$minutes_store = 15;
+$minutes_store = 120;
 $debug = 1;
 ini_set('date.timezone', 'Europe/Chisinau');
-ini_set('display_errors', 'Off');
+ini_set('display_errors', 'On');
 error_reporting(E_ALL && ~E_NOTICE);
 
 // +------------------------------+//

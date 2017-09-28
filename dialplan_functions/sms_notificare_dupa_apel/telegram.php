@@ -3,6 +3,8 @@
 #This script helps integrate Nagios instances
 #with telegrams chats or channels.
 
+// icinga ALL=(ALL) NOPASSWD: /usr/local/bin/telegram-cli
+
 #Parse arguments
 ini_set('display_errors', 'Off');
 
