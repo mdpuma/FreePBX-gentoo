@@ -145,7 +145,6 @@ elseif ($o['action'] == 'notifynow') {
     $mail->FromName = 'FreePBX';
     $mail->Subject = 'PBX: apel pierdut: ' . $o['src'];
     $mail->AddAddress(get_email_by_csv($o['manager'], $managers_file));
-
     $mail->Body = <<<EOF
 Salut!
 Apel pierdut de la ${o['src']} (${o['srcname']}) 

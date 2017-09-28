@@ -6,12 +6,7 @@
 //
 /* 
 [hangup-hook]
-
-; for asterisk 11
-exten => s,1,System(/var/lib/asterisk/bin/apel_recent.php --action=store --src="${CDR(src)}" --dst="${CDR(dst)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
-
-; for asterisk 13
-exten => s,1,System(/var/lib/asterisk/bin/apel_recent.php --action=store --src="${CDR(cnum)}" --dst="${CALLERID(dnid)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
+exten => s,1,System(/var/lib/asterisk/bin/apel_recent.php --action=store --src="${CDR(cnum)}" --dst="${CONNECTEDLINE(num)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
 same => n,Return()
 
 [predial-hook]
@@ -39,10 +34,10 @@ $o = getopt('', array(
 
 // How much time store recent calls
 $minutes_store = 15;
-$debug = 0;
+$debug = 1;
 ini_set('date.timezone', 'Europe/Chisinau');
 ini_set('display_errors', 'Off');
-error_reporting(E_ALL);
+error_reporting(E_ALL && ~E_NOTICE);
 
 // +------------------------------+//
 $redis = new Redis();
@@ -54,7 +49,7 @@ if ($o['action'] == 'store') {
         if ($debug) debug("apel cu raspuns");
         exit;
     }
-    if (preg_match("/^[0-9]{1,4}$/", $o['src'])) {
+    if (preg_match("/^[0-9]{1,4}$/", $o['src']) && $o['dst'] != '') {
         $redis->set('sip_recent_call_' . $o['dst'], trim($o['src']) , $minutes_store * 60);
         if ($debug) debug("store number " . $o['dst'] . " for " . $minutes_store . " minutes");
         exit;

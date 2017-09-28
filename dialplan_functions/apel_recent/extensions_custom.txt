@@ -2,12 +2,7 @@
 ; Dial options b(predial-hook^s^1) - executam context pe canal SURSA
 
 [hangup-hook]
-
-; for asterisk 11
-exten => s,1,System(/var/lib/asterisk/bin/apel_recent.php --action=store --src="${CDR(src)}" --dst="${CDR(dst)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
-
-; for asterisk 13
-exten => s,1,System(/var/lib/asterisk/bin/apel_recent.php --action=store --src="${CDR(cnum)}" --dst="${CALLERID(dnid)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
+exten => s,1,System(/var/lib/asterisk/bin/apel_recent.php --action=store --src="${CDR(cnum)}" --dst="${CONNECTEDLINE(num)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
 same => n,Return()
 
 [predial-hook]
