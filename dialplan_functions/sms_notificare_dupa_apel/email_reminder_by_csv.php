@@ -138,7 +138,7 @@ elseif ($o['action'] == 'notifynow') {
 }
 
 function send_telegram_msg() {
-    global $config;
+    global $config, $o;
     $message = <<<EOF
 Salut!
 Apel pierdut de la ${o['src']} (${o['srcname']}) 

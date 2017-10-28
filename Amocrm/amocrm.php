@@ -91,6 +91,11 @@ if ($action==='status'){ // list channels status
 	$resp=asterisk_req($params);
 	// report error of any
 	if ($resp[0]['response']!=='Success') answer(array('status'=>'error','data'=>$resp[0]));
+	// show only calls with state Ringing
+    foreach($resp as $i => $j) {
+        if(!isset($j['channelstatedesc'])) continue;
+        if($j['channelstatedesc']!='Ringing') unset($resp[$i]);
+    }
 	// first an last chunks are useless
 	unset($resp[end(array_keys($resp))],$resp[0]);
 	// renumber keys for JSON
