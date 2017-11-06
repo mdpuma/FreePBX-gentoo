@@ -1,9 +1,9 @@
 #!/bin/bash
 
 URL="https://raw.githubusercontent.com/mdpuma/FreePBX-gentoo/master"
-DBPASS='xxxxxx'
-DOMAIN='sip.xxx.xxx'
-EMAIL='xxx@xxx.xxx'
+DBPASS='xxx'
+DOMAIN='xxx'
+EMAIL='xx@xx.xx'
 
 # EMERGE_ARGS='-avu'
 EMERGE_ARGS='-u'
@@ -97,8 +97,8 @@ function do_preinstall_fixes() {
 
 function do_install_freepbx() {
     cd /var/www
-    [ ! -f "freepbx-13.0-latest.tgz" ] && wget http://mirror.freepbx.org/modules/packages/freepbx/freepbx-13.0-latest.tgz -O freepbx-13.0-latest.tgz
-    tar xf freepbx-13.0-latest.tgz
+    [ ! -f "freepbx-14.0-latest.tgz" ] && wget http://mirror.freepbx.org/modules/packages/freepbx/freepbx-14.0-latest.tgz -O freepbx-14.0-latest.tgz
+    tar xf freepbx-14.0-latest.tgz
     cd /var/www/freepbx
     /etc/init.d/asterisk restart
     ./install --dbpass=$DBPASS --no-interaction
