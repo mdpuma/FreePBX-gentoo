@@ -59,7 +59,7 @@ $o = getopt('', array(
 
 if ($o['action'] == 'store') {
     if ($o['dst'] != '' || $o['disposition'] == 'CANCEL') {
-        if($debug==1) debug("apel cu raspuns");
+        if($config['debug']==1) debug("apel cu raspuns");
         exit;
     }
 
@@ -68,7 +68,7 @@ if ($o['action'] == 'store') {
     }
 
     if (preg_match("/^[0-9]{1,3}$/", $o['src'])) {
-        if($debug==1) debug("apel de iesire");
+        if($config['debug']==1) debug("apel de iesire");
         exit;
     }
 
@@ -108,16 +108,16 @@ elseif ($o['action'] == 'sendemail') {
     }
 
     if (!$mail->send()) {
-        if($debug==1) debug("Mailer Error: " . $mail->ErrorInfo);
+        if($config['debug']==1) debug("Mailer Error: " . $mail->ErrorInfo);
     }
     else {
-        if($debug==1) debug("Message sent!");
+        if($config['debug']==1) debug("Message sent!");
         @unlink($config['missedcall_file']);
     }
 }
 elseif ($o['action'] == 'notifynow') {
     if ($o['dst'] != '' || $o['disposition'] == 'CANCEL') {
-        if($debug==1) debug("apel cu raspuns");
+        if($config['debug']==1) debug("apel cu raspuns");
         exit;
     }
 
@@ -126,7 +126,7 @@ elseif ($o['action'] == 'notifynow') {
     }
 
     if (preg_match("/^[0-9]{1,3}$/", $o['src'])) {
-        if($debug==1) debug("apel de iesire");
+        if($config['debug']==1) debug("apel de iesire");
         exit;
     }
 
@@ -174,10 +174,10 @@ EOF;
     
 
     if (!$mail->send()) {
-        if($debug==1) debug("Mailer Error: " . $mail->ErrorInfo);
+        if($config['debug']==1) debug("Mailer Error: " . $mail->ErrorInfo);
     }
     else {
-        if($debug==1) debug("Message sent!");
+        if($config['debug']==1) debug("Message sent!");
     }
 }
 
@@ -186,7 +186,7 @@ function get_email_by_csv($extension, $csvfile) {
     $result = '';
     if (($handle = fopen($csvfile, "r")) !== false) {
         while (($data = fgetcsv($handle, 100, ",")) !== false) {
-            if ($data[0] == $extension) {
+            if (!empty($data[0]) && !empty($extension) && $data[0] == $extension) {
                 // found required extension
                 return $data[1];
             }
