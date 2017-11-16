@@ -58,19 +58,8 @@ $o = getopt('', array(
 // +------------------------------+//
 
 if ($o['action'] == 'store') {
-    if ($o['dst'] != '' || $o['disposition'] == 'CANCEL') {
-        if($config['debug']==1) debug("apel cu raspuns");
-        exit;
-    }
-
-    if (!isset($o['srcname']) || empty($o['srcname'])) {
-        $o['srcname'] = $o['src'];
-    }
-
-    if (preg_match("/^[0-9]{1,3}$/", $o['src'])) {
-        if($config['debug']==1) debug("apel de iesire");
-        exit;
-    }
+    // check if this is unanswered call
+    check_is_missing($o);
 
     $file_exists = 0;
     if (is_file($config['missedcall_file'])) $file_exists = 1;
@@ -116,25 +105,29 @@ elseif ($o['action'] == 'sendemail') {
     }
 }
 elseif ($o['action'] == 'notifynow') {
-    if ($o['dst'] != '' || $o['disposition'] == 'CANCEL') {
-        if($config['debug']==1) debug("apel cu raspuns");
-        exit;
-    }
-
-    if (!isset($o['srcname']) || empty($o['srcname'])) {
-        $o['srcname'] = $o['src'];
-    }
-
-    if (preg_match("/^[0-9]{1,3}$/", $o['src'])) {
-        if($config['debug']==1) debug("apel de iesire");
-        exit;
-    }
+    // check if this is unanswered call
+    check_is_missing($o);
 
     // send email
     send_email();
     
 //     // send telegram message
 //     send_telegram_msg();
+}
+
+function check_is_missing($o) {
+    global $config;
+    if ($o['dst'] != '' && ($o['disposition'] == 'ANSWERED' || $o['disposition'] == 'BUSY')) {
+        if($config['debug']==1) debug("apel cu raspuns");
+        exit;
+    }
+    if (!isset($o['srcname']) || empty($o['srcname'])) {
+        $o['srcname'] = $o['src'];
+    }
+    if (preg_match("/^[0-9]{1,3}$/", $o['src'])) {
+        if($config['debug']==1) debug("apel de iesire");
+        exit;
+    }
 }
 
 function send_telegram_msg() {
