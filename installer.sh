@@ -65,6 +65,7 @@ EOF
 # do_letsencrypt sip.domain.com
 function do_letsencrypt() {
     emerge $EMERGE_ARGS --autounmask-continue certbot
+    mkdir -p /var/www/html
     certbot certonly --email $2 --non-interactive --agree-tos --no-eff-email --webroot --webroot-path /var/www/html -d $1
 }
 
@@ -93,6 +94,9 @@ function do_preinstall_fixes() {
     rm /etc/asterisk/* -rfv
     rm /var/www/html/* -rf
     mysql -e 'drop database asterisk'
+    
+    # required by freepbx 14
+    cp /etc/pam.d/sudo /etc/pam.d/runuser
 }
 
 function do_install_freepbx() {
