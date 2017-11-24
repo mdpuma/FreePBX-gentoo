@@ -1,0 +1,8 @@
+[custom_intro]
+exten => sales,1,Set(__DEPARTMENT=sales)
+same => n,Goto(timeconditions,1,1)
+exten => service,1,Set(__DEPARTMENT=service)
+same => n,Goto(timeconditions,2,1)
+exten => tehnic,1,Set(__DEPARTMENT=tehnic)
+same => n,Goto(from-did-direct,104,1)
+ 
