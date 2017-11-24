@@ -10,7 +10,7 @@
 // same => n,Return()
 // 
 // [hangup-hook2]
-// exten => s,1,System(/var/lib/asterisk/bin/email_reminder_by_csv.php --action=notifynow --src="${CALLERID(num)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${DIALSTATUS}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
+// exten => s,1,System(/var/lib/asterisk/bin/email_reminder_by_csv.php --action=notifynow --src="${CALLERID(num)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${DIALSTATUS}" --context="${CDR(dcontext)}" --department="sales" >&1 | tee -a /tmp/asterisk.php.log)
 // same => n,Return()
 
 
@@ -21,8 +21,8 @@ require_once 'PHPMailer/class.smtp.php';
 
 $config = array(
     'email' => array(
-        'from' => 'sip@sip.aaa',
-        'to' => 'aa@aa.aa',
+        'from' => 'sip@sip.local',
+        'to' => 'sip@sip.local',
         'use_smtp' => 0,
         'smtphost' => '',
         'username' => '',
@@ -34,7 +34,12 @@ $config = array(
     'managers_file' => '/var/lib/asterisk/bin/managers.csv',
     'telegram' => array(
         'script' => '/var/lib/asterisk/bin/telegram.php',
-        'destination' => 'IPHOST'
+        'destination' => 'IPHOST',
+        'departments' => [
+            'sales' => 'IPHOST',
+            'service' => 'IPHOST Service',
+            'tehnic' => 'IPHOST Tech',
+        ]
     ),
     'debug' => 1,
 );
@@ -53,6 +58,7 @@ $o = getopt('', array(
     'dst:',
     'disposition:',
     'context:',
+    'department:',
 ));
 
 // +------------------------------+//
@@ -108,16 +114,16 @@ elseif ($o['action'] == 'notifynow') {
     // check if this is unanswered call
     check_is_missing($o);
 
-    // send email
-    send_email();
-    
-//     // send telegram message
-//     send_telegram_msg();
+//    send_email();
+    send_telegram_msg(get_missedcall_template());
+}
+elseif ($o['action'] == 'force_notify') {
+    send_telegram_msg("Intrare apel pe numarul ${o['did']} de la ${o['src']} (${o['srcname']})");
 }
 
 function check_is_missing($o) {
     global $config;
-    if ($o['dst'] != '' && ($o['disposition'] == 'ANSWERED' || $o['disposition'] == 'BUSY')) {
+    if ($o['dst'] != '' && ($o['disposition'] == 'ANSWERED' || $o['disposition'] == 'BUSY' || $o['disposition'] == 'ANSWER')) {
         if($config['debug']==1) debug("apel cu raspuns");
         exit;
     }
@@ -130,13 +136,16 @@ function check_is_missing($o) {
     }
 }
 
-function send_telegram_msg() {
+function send_telegram_msg($message) {
     global $config, $o;
-    $message = <<<EOF
-Salut!
-Apel pierdut de la ${o['src']} (${o['srcname']}) 
-EOF;
-    system('echo "'.$message.'" | '.$config['telegram']['script'].' '.$config['telegram']['destination']);
+    
+    // deliver message to department group else to default
+    if(isset($o['department']) && !empty($o['department']) && isset($config['telegram']['departments'][$o['department']])) {
+        system('echo "'.$message.'" | '.$config['telegram']['script'].' "'.$config['telegram']['departments'][$o['department']].'"');
+        echo 'deliver to '.$config['telegram']['departments'][$o['department']];
+    } else {
+        system('echo "'.$message.'" | '.$config['telegram']['script'].' "'.$config['telegram']['destination'].'"');
+    }
 }
 
 function send_email() {
@@ -160,10 +169,7 @@ function send_email() {
     $mail->FromName = 'FreePBX';
     $mail->Subject = 'PBX: apel pierdut: ' . $o['src'];
     $mail->AddAddress(get_email_by_csv($o['manager'], $config['managers_file']));
-    $mail->Body = <<<EOF
-Salut!
-Apel pierdut de la ${o['src']} (${o['srcname']}) 
-EOF;
+    $mail->Body = get_missedcall_template();
     
 
     if (!$mail->send()) {
@@ -177,7 +183,7 @@ EOF;
 function get_email_by_csv($extension, $csvfile) {
     global $config;
     $result = '';
-    if (($handle = fopen($csvfile, "r")) !== false) {
+    if (($handle = @fopen($csvfile, "r")) !== false) {
         while (($data = fgetcsv($handle, 100, ",")) !== false) {
             if (!empty($data[0]) && !empty($extension) && $data[0] == $extension) {
                 // found required extension
@@ -194,6 +200,13 @@ function get_manager_by_callerid($callerid) {
         return $matches[1];
     }
     return '';
+}
+
+function get_missedcall_template() {
+    global $o;
+    return <<<EOF
+Apel pierdut, receptionat pe numarul ${o['did']} de la ${o['src']} (${o['srcname']}) 
+EOF;
 }
 
 function debug($msg) {
