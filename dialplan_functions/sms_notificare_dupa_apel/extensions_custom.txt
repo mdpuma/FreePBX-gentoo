@@ -1,0 +1,12 @@
+; Dial options B(predial-hook^s^1) - executam context pe canal DESTINATIE
+; Dial options b(predial-hook^s^1) - executam context pe canal SURSA
+
+[predial-hook]
+exten => s,1,Set(CHANNEL(hangup_handler_wipe)=hangup-hook,s,1)
+same => n,Return()
+
+[hangup-hook]
+exten => s,1,System(/var/lib/asterisk/bin/send_sms.php --src="${CDR(src)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
+exten => s,1,System(/var/lib/asterisk/bin/send_email.php --src="${CDR(src)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
+exten => s,1,System(/var/lib/asterisk/bin/email_reminder.php --action=store --src="${CDR(src)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
+same => n,Return()
