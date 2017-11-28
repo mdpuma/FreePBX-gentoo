@@ -5,7 +5,7 @@ ini_set('display_errors', 'Off');
 include 'TelegramBotPHP/Telegram.php';
 
 
-$token    = '468030648:AAEZ06d_DHbQ1udUH51TmK3fnJ2cLtPzhBo'; //iphostmd_bot
+$token    = 'API'; //iphostmd_bot
 $o        = getopt('', array(
     'action:',
     'msg:',
@@ -14,7 +14,7 @@ $o        = getopt('', array(
 ));
 
 $chats    = array(
-    'sales' => -285995895
+    'sales' => ID
 );
 
 $telegram = new Telegram($token);
