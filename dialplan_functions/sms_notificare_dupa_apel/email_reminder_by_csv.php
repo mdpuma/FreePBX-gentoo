@@ -33,12 +33,11 @@ $config = array(
     // for email notification about lost calls by individual pair of manager=> email
     'managers_file' => '/var/lib/asterisk/bin/managers.csv',
     'telegram' => array(
-        'script' => '/var/lib/asterisk/bin/telegram.php',
-        'destination' => 'IPHOST',
+         'script' => '/var/lib/asterisk/bin/telegram_bot.php',
+//        'script' => '/var/lib/asterisk/bin/telegram.php',
+        'destination' => 'sales',
         'departments' => [
-            'sales' => 'IPHOST',
-            'service' => 'IPHOST Service',
-            'tehnic' => 'IPHOST Tech',
+            'sales' => 'sales',
         ]
     ),
     'debug' => 1,
@@ -115,10 +114,10 @@ elseif ($o['action'] == 'notifynow') {
     check_is_missing($o);
 
 //    send_email();
-    send_telegram_msg(get_missedcall_template());
+    send_telegram_msg(get_telegram_chat($o['department']), get_missedcall_template());
 }
 elseif ($o['action'] == 'force_notify') {
-    send_telegram_msg("Intrare apel pe numarul ${o['did']} de la ${o['src']} (${o['srcname']})");
+    send_telegram_msg(get_telegram_chat($o['department']), "Intrare apel pe numarul ${o['did']} de la ${o['src']} (${o['srcname']})");
 }
 
 function check_is_missing($o) {
@@ -136,15 +135,22 @@ function check_is_missing($o) {
     }
 }
 
-function send_telegram_msg($message) {
-    global $config, $o;
+function send_telegram_msg($chat, $message) {
+    global $config;
     
-    // deliver message to department group else to default
+    // using telegram BotApi
+    system($config['telegram']['script'].' --action=sendmessage --chat="'.$chat.'" --msg="'.$message.'"');
+    
+    // using telegram-cli
+//     system('echo "'.$message.'" | '.$config['telegram']['script'].' "'.$chat.'"');
+}
+
+function get_telegram_chat($department=null) {
+    global $o, $config;
     if(isset($o['department']) && !empty($o['department']) && isset($config['telegram']['departments'][$o['department']])) {
-        system('echo "'.$message.'" | '.$config['telegram']['script'].' "'.$config['telegram']['departments'][$o['department']].'"');
-        echo 'deliver to '.$config['telegram']['departments'][$o['department']];
+        return $config['telegram']['departments'][$o['department']].'"';
     } else {
-        system('echo "'.$message.'" | '.$config['telegram']['script'].' "'.$config['telegram']['destination'].'"');
+        return $config['telegram']['destination'];
     }
 }
 
