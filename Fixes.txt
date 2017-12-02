@@ -25,3 +25,7 @@ FIX: Write extensions_override_freepbx.conf:
 
 [macro-exten-vm]
 exten => s,5,Set(RT=${IF($["${ARG1}"!="novm" | "${DB(CFU/${EXTTOCALL})}"!="" | "${DB(CFB/${EXTTOCALL})}"!="" | "${ARG3}"="1" | "${ARG4}"="1" | "${ARG5}"="1"]?${RINGTIMER}:14)})
+
+
+BUG: Can't play CDR records via firefox
+FIX: Use google chrome
