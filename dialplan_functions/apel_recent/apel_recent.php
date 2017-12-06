@@ -1,35 +1,27 @@
 #!/usr/bin/env php
 <?php
-// Dial trunk options B(predial-hook^s^1)
+// Dial trunk options b(hangup-hook^install^1)
 //
 // Required dial plan contexts
 //
-/* 
-[hangup-hook]
-exten => s,1,System(/var/lib/asterisk/bin/apel_recent.php --action=store --src="${CDR(cnum)}" --dst="${CONNECTEDLINE(num)}" --disposition="${CDR(disposition)}" --context="${CDR(dcontext)}" 2>&1 | tee -a /tmp/asterisk.php.log)
-same => n,Return()
-
-[predial-hook]
-exten => s,1,Set(CHANNEL(hangup_handler_wipe)=hangup-hook,s,1)
-same => n,Return()
-
-[apel_recent]
-exten => s,1,Noop(Verific apel recent)
-same => n,Set(apel_recent=${SHELL(/var/lib/asterisk/bin/apel_recent.php --action=get --number="${CALLERID(num)}")})
-same => n,GotoIf($["${apel_recent}"=""]?ext-group,10,1)
-same => n,Gosub(apel_manager,${apel_recent},1)
-
-*/
+// [hangup-hook]
+// exten => install,1,Set(CHANNEL(hangup_handler_wipe)=hangup-hook,run,1)
+// same => n,Return()
+// exten => run,1,System(/var/lib/asterisk/bin/apel_recent.php --action=store --src="${FROMEXTEN}" --dst="${CALLERID(num)}" --disposition="${CDR(disposition)}" 2>&1 | tee -a /tmp/asterisk.php.log)
+// same => n,Return()
+// 
+// [apel_recent]
+// exten => s,1,Noop(Verific apel recent)
+// same => n,Set(apel_recent=${SHELL(/var/lib/asterisk/bin/apel_recent.php --action=get --number="${CALLERID(num)}")})
+// same => n,GotoIf($["${apel_recent}"=""]?ext-group,10,1)
+// same => n,Gosub(apel_manager,${apel_recent},1)
 
 $o = getopt('', array(
     'action:',
-    'number:',
     'src:',
-    'srcname:',
-    'did:',
     'dst:',
     'disposition:',
-    'context:'
+    'number:',
 ));
 
 // How much time store recent calls
