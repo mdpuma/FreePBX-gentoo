@@ -29,11 +29,11 @@ $config = array(
         'password' => '',
         'default_destination' => 'sip@sip.local',
         'departments' => [
-            'sales-worktime' => 'rodica@euroterm.md,operator@euroterm.md',
-            'sales' => 'rodica@euroterm.md',
-            'service-worktime' => 'service@euroterm.md,service1@euroterm.md',
-            'service' => 'service1@euroterm.md',
-            'tech' => 'inginer2@euroterm.md,marcinschi@euroterm.md',
+            'sales-workhours' => 'sip@sip.local',
+            'sales' => 'sip@sip.local',
+            'service-workhours' => 'sip@sip.local',
+            'service' => 'sip@sip.local',
+            'tech' => 'sip@sip.local',
         ]
     ),
     
@@ -41,11 +41,14 @@ $config = array(
     'managers_file' => '/var/lib/asterisk/bin/managers.csv',
     'telegram' => array(
         'script' => '/var/lib/asterisk/bin/telegram_bot.php',
-        'default_destination' => 'Euroterm',
+        'default_destination' => -303442075,
         'departments' => [
-            'sales' => 'Euroterm',
-            'service' => 'Euroterm Service',
-            'tech' => 'Euroterm Tehnic'
+            'sales' => -303442075,
+            'service' => -276061837,
+            'tech' => -288296707
+//             'sales' => -303442075,
+//             'service' => -276061837,
+//             'tech' => -288296707
         ]
     ),
     'debug' => 1,

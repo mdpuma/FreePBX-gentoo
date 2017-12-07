@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 // https://github.com/Eleirbag89/TelegramBotPHP/blob/master/Telegram.php
-ini_set('display_errors', 'Off');
+ini_set('display_errors', 'On');
 include 'TelegramBotPHP/Telegram.php';
 
 
@@ -12,10 +12,6 @@ $o        = getopt('', array(
     'chat:',
     'debug:'
 ));
-
-$chats    = array(
-    'sales' => ID
-);
 
 $telegram = new Telegram($token);
 switch (@$o['action']) {
@@ -32,10 +28,10 @@ switch (@$o['action']) {
         if (!isset($o['msg']) || empty($o['msg'])) {
             die("empty msg argument\n");
         }
-        if (isset($o['chat']) && isset($chats[$o['chat']])) {
-            $chat_id = $chats[$o['chat']];
+        if (isset($o['chat']) && is_numeric($o['chat'])) {
+            $chat_id = $o['chat'];
         } else {
-            die("Please complete chats list\n");
+            die("Please complete chat argument with chat_id\n");
         }
         $content = array(
             'chat_id' => $chat_id,

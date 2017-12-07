@@ -63,9 +63,9 @@ function send_telegram_msg($chat, $message) {
 }
 
 function get_telegram_chat($department=null) {
-    global $o, $config;
-    if(isset($o['department']) && !empty($o['department']) && isset($config['telegram']['departments'][$o['department']])) {
-        return $config['telegram']['departments'][$o['department']].'"';
+    global $config;
+    if(!empty($department) && isset($config['telegram']['departments'][$department])) {
+        return $config['telegram']['departments'][$department];
     } else {
         return $config['telegram']['default_destination'];
     }
