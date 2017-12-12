@@ -1,2 +1,1 @@
- 
-0 9 * * *       php /var/lib/asterisk/bin/email_reminder.php --action=sendemail >/dev/null
+0 9 * * *       php /var/lib/asterisk/bin/hangup_handler.php --action=sendemail >/dev/null

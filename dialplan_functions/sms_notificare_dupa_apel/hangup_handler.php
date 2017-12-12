@@ -3,14 +3,12 @@
 // Required contexts:
 
 // [cidlookup]
-// exten => cidlookup_1,n,Gosub(predial-hook2,s,1)
+// exten => cidlookup_1,n,Gosub(hangup-hook1,s,1)
 //
-// [predial-hook2]
-// exten => s,1,Set(CHANNEL(hangup_handler_wipe)=hangup-hook2,s,1)
+// [hangup-hook1]
+// exten => install,1,Set(CHANNEL(hangup_handler_wipe)=hangup-hook1,run,1)
 // same => n,Return()
-// 
-// [hangup-hook2]
-// exten => s,1,System(/var/lib/asterisk/bin/hangup_handler.php --action=notifynow --src="${CALLERID(num)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${DIALSTATUS}" --context="${CDR(dcontext)}" --department="sales" >&1 | tee -a /tmp/asterisk.php.log)
+// exten => run,1,System(/var/lib/asterisk/bin/hangup_handler.php --action=store --src="${CALLERID(num)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${DIALSTATUS}" --department="sales")
 // same => n,Return()
 
 
@@ -43,9 +41,6 @@ $config = array(
         'script' => '/var/lib/asterisk/bin/telegram_bot.php',
         'default_destination' => -303442075,
         'departments' => [
-            'sales' => -303442075,
-            'service' => -276061837,
-            'tech' => -288296707
 //             'sales' => -303442075,
 //             'service' => -276061837,
 //             'tech' => -288296707
@@ -67,7 +62,6 @@ $o = getopt('', array(
     'did:',
     'dst:',
     'disposition:',
-    'context:',
     'department:',
 ));
 
@@ -100,7 +94,7 @@ elseif ($o['action'] == 'sendemail') {
     if(is_file($missedcall_file)) {
         $return = send_missed_call_email($config['email']['default_destination'], $config, $missedcall_file);
         if(!$return) debug("Mailer Error: " . $mail->ErrorInfo);
-        else @unlink($missedcall_file); 
+        @unlink($missedcall_file); 
     }
 }
 elseif ($o['action'] == 'notifynow') {
