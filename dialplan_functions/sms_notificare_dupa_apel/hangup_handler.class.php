@@ -1,5 +1,20 @@
 <?php
 
+function check_is_missing($o) {
+    global $config;
+    if ($o['dst'] != '' && ($o['disposition'] == 'ANSWERED' || $o['disposition'] == 'BUSY' || $o['disposition'] == 'ANSWER')) {
+        if($config['debug']==1) debug("apel cu raspuns");
+        exit;
+    }
+    if (!isset($o['srcname']) || empty($o['srcname'])) {
+        $o['srcname'] = $o['src'];
+    }
+    if (preg_match("/^[0-9]{1,3}$/", $o['src'])) {
+        if($config['debug']==1) debug("apel de iesire");
+        exit;
+    }
+}
+
 function store_missed_call($o, $file) {
     if (is_file($file)) $file_exists = 1;
     $fp = fopen($file, 'a+');
@@ -8,7 +23,7 @@ function store_missed_call($o, $file) {
     fclose($fp);
 }
 
-function send_missed_call_email($destination, $config, $attachment) {
+function send_missed_call_email_report($destination, $config, $attachment) {
     $mail = new PHPMailer();
     if ($config['email']['smtp'] == 1) {
         $mail->isSMTP();
@@ -37,41 +52,7 @@ function send_missed_call_email($destination, $config, $attachment) {
     return $mail->send();
 }
 
-function check_is_missing($o) {
-    global $config;
-    if ($o['dst'] != '' && ($o['disposition'] == 'ANSWERED' || $o['disposition'] == 'BUSY' || $o['disposition'] == 'ANSWER')) {
-        if($config['debug']==1) debug("apel cu raspuns");
-        exit;
-    }
-    if (!isset($o['srcname']) || empty($o['srcname'])) {
-        $o['srcname'] = $o['src'];
-    }
-    if (preg_match("/^[0-9]{1,3}$/", $o['src'])) {
-        if($config['debug']==1) debug("apel de iesire");
-        exit;
-    }
-}
-
-function send_telegram_msg($chat, $message) {
-    global $config;
-    
-    // using telegram BotApi
-    system($config['telegram']['script'].' --action=sendmessage --chat="'.$chat.'" --msg="'.$message.'"');
-    
-    // using telegram-cli
-//     system('echo "'.$message.'" | '.$config['telegram']['script'].' "'.$chat.'"');
-}
-
-function get_telegram_chat($department=null) {
-    global $config;
-    if(!empty($department) && isset($config['telegram']['departments'][$department])) {
-        return $config['telegram']['departments'][$department];
-    } else {
-        return $config['telegram']['default_destination'];
-    }
-}
-
-function send_email() {
+function send_missed_call_email($destination) {
     global $mail, $config, $o;
     $mail = new PHPMailer();
     if ($config['email']['use_smtp'] == 1) {
@@ -85,13 +66,12 @@ function send_email() {
         // $mail->SMTPDebug = 2;
         $mail->SMTPOptions = array('ssl' => array('verify_peer' => false));
     }
-
-    $o['manager'] = get_manager_by_callerid($o['srcname']);
+    
+    add_destination_mail($destination, $mail);
     
     $mail->From = $config['email']['from'];
     $mail->FromName = 'FreePBX';
     $mail->Subject = 'PBX: apel pierdut: ' . $o['src'];
-    $mail->AddAddress(get_email_by_csv($o['manager'], $config['managers_file']));
     $mail->Body = get_missedcall_template();
     
 
@@ -100,6 +80,42 @@ function send_email() {
     }
     else {
         if($config['debug']==1) debug("Message sent!");
+    }
+}
+
+// destination may be comma separated
+function add_destination_mail($destination, $mail) {
+    $list = explode(",", $destination);
+    foreach($list as $email) {
+        $mail->AddAddress($email);
+    }
+}
+
+function send_telegram_msg($chat, $message) {
+    global $config;
+    
+    // using telegram BotApi
+    system($config['telegram']['script'].' --action=sendmessage --chat="'.$chat.'" --msg="'.$message.'"');
+    
+    // using telegram-cli
+//     system('echo "'.$message.'" | '.$config['telegram']['script'].' "'.$chat.'"');
+}
+
+function get_email_destination($department=null) {
+    global $config;
+    if(!empty($department) && isset($config['email']['departments'][$department])) {
+        return $config['email']['departments'][$department];
+    } else {
+        return $config['email']['default_destination'];
+    }
+}
+
+function get_telegram_chat($department=null) {
+    global $config;
+    if(!empty($department) && isset($config['telegram']['departments'][$department])) {
+        return $config['telegram']['departments'][$department];
+    } else {
+        return $config['telegram']['default_destination'];
     }
 }
 

@@ -83,7 +83,7 @@ elseif ($o['action'] == 'sendemail') {
         $missedcall_file = '/tmp/missedcall_'.$department.'.csv';
         $list = explode(",", $destination);
         foreach($list as $email) {
-            $return = send_missed_call_email($email, $config, $missedcall_file);
+            $return = send_missed_call_email_report($email, $config, $missedcall_file);
             if(!$return) debug("Mailer Error: " . $mail->ErrorInfo);
         }
         @unlink($missedcall_file);
@@ -92,7 +92,7 @@ elseif ($o['action'] == 'sendemail') {
     // send missedcall list for default_destination if exists
     $missedcall_file = '/tmp/missedcall.csv';
     if(is_file($missedcall_file)) {
-        $return = send_missed_call_email($config['email']['default_destination'], $config, $missedcall_file);
+        $return = send_missed_call_email_report($config['email']['default_destination'], $config, $missedcall_file);
         if(!$return) debug("Mailer Error: " . $mail->ErrorInfo);
         @unlink($missedcall_file); 
     }
@@ -101,7 +101,7 @@ elseif ($o['action'] == 'notifynow') {
     // check if this is unanswered call
     check_is_missing($o);
 
-//    send_email();
+//    send_missed_call_email(get_email_destination($o['department']));
     send_telegram_msg(get_telegram_chat($o['department']), get_missedcall_template());
 }
 elseif ($o['action'] == 'force_notify') {
