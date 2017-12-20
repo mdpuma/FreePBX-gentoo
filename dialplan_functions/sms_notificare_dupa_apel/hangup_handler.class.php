@@ -115,7 +115,7 @@ function get_email_by_csv($extension, $csvfile) {
         }
         fclose($handle);
     }
-    return $config['email']['to'];
+    return $config['email']['default_destination'];
 }
 
 function get_manager_by_callerid($callerid) {
