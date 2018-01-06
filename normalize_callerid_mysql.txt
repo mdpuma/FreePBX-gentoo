@@ -1,0 +1,43 @@
+ 
+-- Adminer 4.3.1 MySQL dump
+
+SET NAMES utf8;
+SET time_zone = '+00:00';
+
+DELIMITER ;;
+
+DROP FUNCTION IF EXISTS `cut_number`;;
+CREATE FUNCTION `cut_number`(`phonenumber` varchar(64)) RETURNS varchar(64) CHARSET utf8
+begin
+
+declare prefix varchar(2);
+SELECT substring(phonenumber,1,1) into prefix;
+if prefix = '0' then
+
+   SELECT substring(phonenumber, 2) INTO phonenumber;
+end if;
+
+return concat('%', phonenumber, '%');
+end;;
+
+DROP FUNCTION IF EXISTS `IFEMPTY`;;
+CREATE DEFINER=`amplicm_bill`@`localhost` FUNCTION `IFEMPTY`(s text) RETURNS text CHARSET utf8
+    DETERMINISTIC
+return if(s IS NULL OR s = 0 OR s = '' OR s='0000-00-00' OR s='1970-01-01' OR s='1970-01-01 00:00:00' OR s='0000-00-00 00:00:00', TRUE, FALSE);;
+
+DROP FUNCTION IF EXISTS `normalize_number`;;
+CREATE FUNCTION `normalize_number`(`phonenumber` varchar(64)) RETURNS varchar(64) CHARSET utf8
+begin
+
+declare p1 varchar(64);
+SELECT REPLACE(phonenumber, '-', '') INTO p1;
+SELECT REPLACE(p1, ' ', '') INTO p1;
+SELECT REPLACE(p1, '(', '') INTO p1;
+SELECT REPLACE(p1, ')', '') INTO p1;
+SELECT substring_index(p1, '.', -1) INTO p1;
+return p1;
+end;;
+
+DELIMITER ;
+
+-- 2018-01-06 12:41:53

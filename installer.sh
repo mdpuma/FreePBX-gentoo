@@ -24,6 +24,8 @@ function configure_phpfpm() {
         echo "configure_phpfpm() php-fpm5.6 doesn't exists, check directory /etc/php/fpm-php5.6"
         exit 1
     fi
+    eselect php set cli php5.6
+    eselect php set fpm php5.6
     wget $URL/etc-config/php-fpm.openrc.init -O /etc/init.d/php-fpm
     wget $URL/etc-config/php-fpm.conf -O /etc/php/fpm-php5.6/php-fpm.conf
     wget $URL/etc-config/php.ini.txt -O /etc/php/fpm-php5.6/php.ini
