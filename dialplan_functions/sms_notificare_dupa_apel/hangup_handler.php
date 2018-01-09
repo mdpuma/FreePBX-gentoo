@@ -8,7 +8,8 @@
 // [hangup-hook1]
 // exten => install,1,Set(CHANNEL(hangup_handler_wipe)=hangup-hook1,run,1)
 // same => n,Return()
-// exten => run,1,System(/var/lib/asterisk/bin/hangup_handler.php --action=store --src="${CALLERID(num)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${DIALSTATUS}" --department="sales")
+// exten => run,1,System(/var/lib/asterisk/bin/hangup_handler.php --action=notifynow --src="${CALLERID(num)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${DIALSTATUS}")
+// ; use disposition="${CDR(disposition)}" if call may end on queue
 // same => n,Return()
 
 
