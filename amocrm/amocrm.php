@@ -34,8 +34,8 @@ define('REPLACE_SRC_WITH_CNUM', true); // used for attented_transfer2 with prese
 // hide internal calls
 define('HIDE_INTERNAL_CALLS', true);
 
-$did_numbers = array('22210021', '22011021');
-$non_exten_numbers = array('10', '20', '600');
+// $did_numbers = array('22210021', '22011021');
+// $non_exten_numbers = array('10', '20', '600');
 
 $db_cs=AC_DB_CS;
 $db_u=!strlen(AC_DB_UNAME)?NULL:AC_DB_UNAME;
