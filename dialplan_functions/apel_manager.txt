@@ -5,11 +5,9 @@
 exten => s,1,Noop(Detectare numar operator CALLERID:${CALLERID(name)})
 same => n,Set(MANAGER_ID=${CUT(CALLERID(name),|,2)})
 same => n,Set(MANAGER_ID=${REPLACE(MANAGER_ID, )})
-same => n,GotoIf($["${MANAGER_ID}"=""]?ext-queues,1000,1)
+same => n,GotoIf($["${MANAGER_ID}"=""]?label1)
 same => n,Gosub(apel_manager,${MANAGER_ID},1)
-same => n,Goto(ext-queues,1000,1)
-same => n,Hangup()
-exten => h,1,Macro(hangupcall)
+same => n(label1),Return()
 
 [apel_manager]
 exten => _XXX,1,Noop(Incercare apelare operator ${EXTEN})
