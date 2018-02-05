@@ -26,7 +26,7 @@ define('AC_DB_UNAME','freepbxuser');
 define('AC_DB_UPASS','');
 define('AC_TIMEOUT',0.75);
 define('AC_RECORD_PATH','https://sip.loc/monitor/%Y/%m/%d/#');
-define('AC_TIME_DELTA',3); // hours. Ex. GMT+4 = 4
+define('HOME_TIMEZONE', 'Europe/Chisinau');
 
 // available only with FreePBX due CDR['cnum'] are inserted into CDR due FreePBX dialplan
 define('REPLACE_SRC_WITH_CNUM', true); // used for attented_transfer2 with preserving callerid of party A
@@ -40,8 +40,9 @@ $non_exten_numbers = array('10', '20', '600');
 $db_cs=AC_DB_CS;
 $db_u=!strlen(AC_DB_UNAME)?NULL:AC_DB_UNAME;
 $db_p=!strlen(AC_DB_UPASS)?NULL:AC_DB_UPASS;
-date_default_timezone_set('UTC');
 
+define('AC_TIME_DELTA', extract_timezone_delta());
+date_default_timezone_set('UTC');
 
 if (AC_PORT<1) die('Please, configure settings first!'); // die if not
 if (defined('AC_RECORD_PATH') AND !empty($_GET['GETFILE'])){
@@ -154,20 +155,30 @@ if ($action==='status'){ // list channels status
 		foreach ($r as $k=>$v) {
 			$r[$k]['calldate']=date('Y-m-d H:i:s',strtotime($v['calldate'])-AC_TIME_DELTA*3600);
 			
-			// fix: replace src when src is equal to outgoing callerid, using $did_numbers values
-			if(in_array($v['src'], $did_numbers) && preg_match("/^SIP\/([0-9]+)/", $v['channel'], $matches)) {
-				$r[$k]['src'] = $matches[1];
-			}
+// 			// fix: replace src when src is equal to outgoing callerid, using $did_numbers values
+// 			if(in_array($v['src'], $did_numbers) && preg_match("/^SIP\/([0-9]+)/", $v['channel'], $matches)) {
+// 				$r[$k]['src'] = $matches[1];
+// 			}
+			
+			// fix: replace src when src have more than 5 digits
+            if(strlen($v['src']) > 5 && preg_match("/^SIP\/([0-9]+)/", $v['channel'], $matches)) {
+                $r[$k]['src'] = $matches[1];
+            }
 			
 			if(REPLACE_SRC_WITH_CNUM==true) {
 				if(!empty($v['cnum']))
 					$r[$k]['src'] = $v['cnum'];
 			}
 			
-			// fix: replace dst when dst is equal to ring-group, using $non_exten_numbers values
-			if(in_array($v['dst'], $non_exten_numbers) && preg_match("/^SIP\/([0-9]+)/", $v['dstchannel'], $matches)) {
-				$r[$k]['dst'] = $matches[1];
-			}
+// 			// fix: replace dst when dst is equal to ring-group, using $non_exten_numbers values
+// 			if(in_array($v['dst'], $non_exten_numbers) && preg_match("/^SIP\/([0-9]+)/", $v['dstchannel'], $matches)) {
+// 				$r[$k]['dst'] = $matches[1];
+// 			}
+            // fix: replace dst when src have more than 4 digits
+            if(strlen($v['src']) > 4 && preg_match("/^SIP\/([0-9]+)/", $v['dstchannel'], $matches)) {
+                $r[$k]['dst'] = $matches[1];
+            }
+            
 			// fix: replace dst when dst is equal to 's', using dstchannel
 			if($v['dst']=='s' && preg_match("/^SIP\/([0-9]+)/", $v['dstchannel'], $matches)) {
 				$r[$k]['dst'] = $matches[1];
@@ -385,4 +396,14 @@ function _rq($url,$cookie){
 	return $r;
 }
 
+function extract_timezone_delta() {
+    date_default_timezone_set(HOME_TIMEZONE);
+
+    $timezone_delta = date('O');
+    preg_match("/^(\+|-)(\d{2})(\d{2})$/", $timezone_delta, $matches);
+    $timezone_delta = intval($matches[2]) + round($matches[3]/60, 2);
+
+    date_default_timezone_set('UTC');
+    return $timezone_delta;
+}
 
