@@ -17,16 +17,17 @@
 
  */
 ini_set('display_errors',0);
+// error_reporting(E_ALL & ~E_STRICT);
 define('AC_HOST','localhost');
 define('AC_PORT',8088);
 define('AC_PREFIX','/asterisk/');
-define('AC_TLS',false);
 define('AC_DB_CS','mysql:host=localhost;port=3306;dbname=asteriskcdrdb');
 define('AC_DB_UNAME','freepbxuser');
 define('AC_DB_UPASS','');
 define('AC_TIMEOUT',0.75);
 define('AC_RECORD_PATH','https://sip.loc/monitor/%Y/%m/%d/#');
 define('HOME_TIMEZONE', 'Europe/Chisinau');
+define('COOKIE_FILE', 'amocrm.cookie.txt');
 
 // available only with FreePBX due CDR['cnum'] are inserted into CDR due FreePBX dialplan
 define('REPLACE_SRC_WITH_CNUM', true); // used for attented_transfer2 with preserving callerid of party A
@@ -34,8 +35,8 @@ define('REPLACE_SRC_WITH_CNUM', true); // used for attented_transfer2 with prese
 // hide internal calls
 define('HIDE_INTERNAL_CALLS', true);
 
-// $did_numbers = array('22210021', '22011021');
-// $non_exten_numbers = array('10', '20', '600');
+// $did_numbers = array('');
+// $non_exten_numbers = array('');
 
 $db_cs=AC_DB_CS;
 $db_u=!strlen(AC_DB_UNAME)?NULL:AC_DB_UNAME;
@@ -77,7 +78,7 @@ foreach (array('login','secret','action') as $k){
 }
 // trying to check accacess
 $loginArr=array(
-	'Action'=>'Login',
+	'action'=>'Login',
 	'username'=>$login,
 	'secret'=>$secret,
 //	'Events'=>'off',
@@ -101,6 +102,21 @@ if ($action==='status'){ // list channels status
 	unset($resp[end(array_keys($resp))],$resp[0]);
 	// renumber keys for JSON
 	$resp=array_values($resp);
+	// strip useless data
+	$data=[];
+	foreach($resp as $key => $i) {
+		if(!isset($i['state']) || $i['state'] != 'Ringing') {
+			//unset($resp['data'][$key]);
+			continue;
+		}
+		$data[] = [
+			'state' => $i['state'],
+			'calleridnum' => $i['calleridnum'],
+			'connectedlinenum' => $i['connectedlinenum'],
+			'uniqueid' => $i['uniqueid'],
+		];
+	}
+	$resp = $data;
 	// report OK
 	answer(array('status'=>'ok','action'=>$action,'data'=>$resp));
 
@@ -112,7 +128,7 @@ if ($action==='status'){ // list channels status
 		'channel'=>'SIP/'.intval($_GET['from']),
 		'Exten'=>strval($_GET['to']),
 		'Context'=>'from-internal',
-		'priority'=>'1',
+		'Priority'=>'1',
 		'Callerid'=>$call_from.' <'.strval($_GET['from']).'>',
 		'Async'=>'Yes',
 		// Not Implemented:
@@ -161,9 +177,9 @@ if ($action==='status'){ // list channels status
 // 			}
 			
 			// fix: replace src when src have more than 5 digits
-            if(strlen($v['src']) > 5 && preg_match("/^SIP\/([0-9]+)/", $v['channel'], $matches)) {
-                $r[$k]['src'] = $matches[1];
-            }
+			if(strlen($v['src']) > 5 && preg_match("/^SIP\/([0-9]+)/", $v['channel'], $matches)) {
+			    $r[$k]['src'] = $matches[1];
+			}
 			
 			if(REPLACE_SRC_WITH_CNUM==true) {
 				if(!empty($v['cnum']))
@@ -174,22 +190,22 @@ if ($action==='status'){ // list channels status
 // 			if(in_array($v['dst'], $non_exten_numbers) && preg_match("/^SIP\/([0-9]+)/", $v['dstchannel'], $matches)) {
 // 				$r[$k]['dst'] = $matches[1];
 // 			}
-            // fix: replace dst when src have more than 4 digits
-            if(strlen($v['src']) > 4 && preg_match("/^SIP\/([0-9]+)/", $v['dstchannel'], $matches)) {
-                $r[$k]['dst'] = $matches[1];
-            }
-            
+			// fix: replace dst when src have more than 4 digits
+			if(strlen($v['src']) > 4 && preg_match("/^SIP\/([0-9]+)/", $v['dstchannel'], $matches)) {
+			    $r[$k]['dst'] = $matches[1];
+			}
+			
 			// fix: replace dst when dst is equal to 's', using dstchannel
 			if($v['dst']=='s' && preg_match("/^SIP\/([0-9]+)/", $v['dstchannel'], $matches)) {
 				$r[$k]['dst'] = $matches[1];
 			}
 
 			// fix: append +373 to numbers when is called without prefix
-			if(preg_match("/^0([267]+[0-9]+)/", $v['dst'], $matches)) {
-				$r[$k]['dst']='+373'.$matches[1];
-			} elseif(preg_match("/^373.+/", $v['dst'])) {
-				$r[$k]['dst']='+'.$v['dst'];
-			}
+// 			if(preg_match("/^0([267]+[0-9]+)/", $v['dst'], $matches)) {
+// 				$r[$k]['dst']='+373'.$matches[1];
+// 			} elseif(preg_match("/^373.+/", $v['dst'])) {
+// 				$r[$k]['dst']='+'.$v['dst'];
+// 			}
 			
 			// fix: hide internal calls
 			if(HIDE_INTERNAL_CALLS==true) {
@@ -214,19 +230,6 @@ if ($action==='status'){ // list channels status
 	} catch (PDOException $e) {
 		answer(array('status'=>'error','data'=>$e->getMessage()),true);
 	}
-} elseif ($action==='pop'){// fill test data. Maybe you will need it. Just comment line below.
-	die();
-	$dbh = new PDO($db_cs, $db_u, $db_p);
-	for ($i=0;$i<(int)$_GET['n'];$i++){
-		$array=array(
-			date('Y-m-d H:i:s',time()-rand(100,7*24*3600)),
-			'Auto <150>', 150,'791612345678','n/a','n/a','n/a','n/a','n/a',999, rand(7,999), 'ANSWERED',3,'',uniqid(),'','',''
-		);
-		$str=array();
-		foreach ($array as  $v) $str[]="'{$v}'";
-		$str=implode(', ',$str);
-		$dbh->query("INSERT INTO cdr VALUES ({$str});");
-	}
 }
 
 /** MakeRequest to asterisk interfacees
@@ -235,7 +238,7 @@ if ($action==='status'){ // list channels status
  */
 function asterisk_req($params,$quick=false){
 	// lets decide if use AJAM or AMI
-	return !defined('AC_PREFIX')?ami_req($params,$quick):ajam_req($params);
+	return !defined('AC_PREFIX')?ami_req($params,$quick):ajam_req_curl($params);
 }
 
 /**
@@ -336,14 +339,124 @@ function rawman_parse($lines){
  * @param $params req. params
  * @return array parsed resp.
  */
-function ajam_req($params){
+function ajam_req($params, $do_force_auth=false){
+	global $login, $secret;
 	static $cookie;
-	// EveryRequest Ajam sends back a cookir, needed for auth handling
-	if ($cookie===NULL) $cookie='';
-	// make req. and store cookie
+	
+	if(!isset($cookie)) {
+		$cookie = load_cookie();
+	}
+	if($params['action'] == 'Login' && $cookie != false && $do_force_auth == false) {
+		return array(['response' => 'Success', 'message' => 'using existing cookie']);
+	}
+	
 	list($body,$cookie)= rq(AC_PREFIX.'rawman?'.http_build_query($params),$cookie);
+	
+	$result = rawman_parse($body);
+	
+	if($result[0]['response']=='Error') {
+		$loginArr=array(
+			'action'=>'Login',
+			'username'=>$login,
+			'secret'=>$secret,
+		);
+		ajam_req($loginArr, true);
+		return ajam_req($params);
+	}
+	
+	if($params['action']=='Login') {
+		store_cookie($cookie);
+	}
+	
 	// parse an answer
-	return rawman_parse($body);
+	return $result;
+}
+
+function ajam_req_curl($params, $do_force_auth=false){
+	global $login, $secret;
+	static $cookie;
+	
+	if(!isset($cookie)) {
+		$cookie = load_cookie();
+	}
+	if($params['action'] == 'Login' && $cookie != false && $do_force_auth == false) {
+		return array(['response' => 'Success', 'message' => 'using existing cookie']);
+	}
+	
+	$ch = curl_init();
+	$options = array(
+		CURLOPT_URL => 'http://'.AC_HOST.':'.AC_PORT.AC_PREFIX.'rawman?'.http_build_query($params),
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_HEADER => true,
+		CURLOPT_COOKIE => 'mansession_id='.$cookie,
+		CURLOPT_TIMEOUT => 2,
+	);
+	$ch = curl_init();
+	curl_setopt_array($ch, $options);
+	$output = curl_exec($ch);
+	curl_close($ch);
+		
+	list($body,$cookie) = parse_curl_output($output);
+	
+	$result = rawman_parse($body);
+	
+	if($result[0]['response']=='Error') {
+		$loginArr=array(
+			'action'=>'Login',
+			'username'=>$login,
+			'secret'=>$secret,
+		);
+		ajam_req_curl($loginArr, true);
+		return ajam_req_curl($params);
+	}
+	
+	if($params['action']=='Login') {
+		store_cookie($cookie);
+	}
+	
+	// parse an answer
+	return $result;
+}
+
+function load_cookie() {
+	if($fh = fopen(COOKIE_FILE, "r")) {
+		$content = fread($fh, 8192);
+		fclose($fh);
+		return $content;
+	}
+	return false;
+}
+
+function store_cookie($cookie) {
+	if($fh = fopen(COOKIE_FILE, "w+")) {
+		$result = fwrite($fh, $cookie, 8192);
+		fclose($fh);
+		return $result;
+	}
+	return false;
+}
+
+function parse_curl_output($output) {
+	// divide in 2 parts
+	list($headersRaw,$body)=explode("\r\n\r\n",$output,2);
+	// parse headers
+	$headersRaw=explode("\r\n",$headersRaw);
+	$headers=array();
+	foreach ($headersRaw as $h){
+		if (strpos($h,':')===false) continue;
+		list($hname,$hv)=explode(":",$h,2);
+		$headers[strtolower(trim($hname))]=trim($hv);
+	}
+	// fetch cookie
+	if (!empty($headers['set-cookie'])){
+		$listcookies=explode(';',$headers['set-cookie']);
+		foreach ($listcookies as $c){
+			list($k,$v)=explode('=',trim($c),2);
+			if ($k=='mansession_id') $cookie=$v;
+		}
+	}
+
+	return array($body,$cookie);
 }
 
 /** make http req. to uri with cookie, parse resp and fetch a new cookie
@@ -396,6 +509,9 @@ function _rq($url,$cookie){
 	return $r;
 }
 
+/**  extract timezone delta based on known timezone
+ * @return float
+ */
 function extract_timezone_delta() {
     date_default_timezone_set(HOME_TIMEZONE);
 
