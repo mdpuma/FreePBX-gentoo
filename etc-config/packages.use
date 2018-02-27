@@ -1,5 +1,5 @@
 dev-db/mariadb odbc
-net-misc/asterisk http mysql
-dev-lang/php mysql opcache fpm pdo curl gd mbstring gettext
+net-misc/asterisk http mysql srtp odbc
+dev-lang/php cli mysql opcache fpm pdo curl gd mbstring gettext
 media-sound/sox flac opus ogg wavpack
 media-video/ffmpeg vorbis
