@@ -1,18 +1,18 @@
 #!/bin/bash
 
-URL="https://raw.githubusercontent.com/mdpuma/FreePBX-gentoo/master"
+URL="https://raw.githubusercontent.com/mdpuma/FreePBX-gentoo/master/installer"
 DBPASS='xxx'
 DOMAIN='xxx'
 EMAIL='xx@xx.xx'
 
 # EMERGE_ARGS='-avu'
-EMERGE_ARGS='-u'
+EMERGE_ARGS='-u --newuse'
 
 function prestage() {
     wget $URL/etc-config/packages.use -O /etc/portage/package.use
     emerge --sync
     emerge $EMERGE_ARGS --autounmask-continue portage
-    emerge $EMERGE_ARGS --autounmask-continue nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo asterisk exim =app-crypt/gnupg-1.4.21
+    emerge $EMERGE_ARGS --autounmask-continue vixie-cron nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo asterisk exim =app-crypt/gnupg-1.4.21
 }
 
 function install_csf() {
@@ -110,6 +110,7 @@ function do_install_freepbx() {
     ./install --dbpass=$DBPASS --no-interaction
     wget -O - $URL/cdr_config.php | php
     /etc/init.d/asterisk restart
+    fwconsole reload
 }
 
 function configure_exim() {
