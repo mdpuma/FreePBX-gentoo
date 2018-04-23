@@ -29,3 +29,6 @@ exten => s,5,Set(RT=${IF($["${ARG1}"!="novm" | "${DB(CFU/${EXTTOCALL})}"!="" | "
 
 BUG: Can't play CDR records via firefox
 FIX: Use google chrome
+
+BUG: Multiple recording files
+FIX: Use call recording option on extensions and on outgoing routes, but not on incoming routes
