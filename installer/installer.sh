@@ -12,7 +12,7 @@ function prestage() {
     wget $URL/etc-config/packages.use -O /etc/portage/package.use
     emerge --sync
     emerge $EMERGE_ARGS --autounmask-continue portage
-    emerge $EMERGE_ARGS --autounmask-continue vixie-cron nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo asterisk exim =app-crypt/gnupg-1.4.21
+    emerge $EMERGE_ARGS --autounmask-continue vixie-cron nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo asterisk exim =app-crypt/gnupg-1.4.21 dev-vcs/git
 }
 
 function install_csf() {
