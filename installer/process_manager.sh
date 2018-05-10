@@ -1,4 +1,4 @@
 #!/bin/bash
 
 emerge -avu nodejs icu
-fw ma install pm2
+fwconsole ma downloadinstall pm2 ucp
