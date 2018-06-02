@@ -1,22 +1,21 @@
 #!/bin/bash
 
 URL="https://raw.githubusercontent.com/mdpuma/FreePBX-gentoo/master/installer"
-DBPASS='xxx'
+DBPASS="$(openssl rand -base64 32 | md5sum |cut -d ' ' -f1)"
 DOMAIN='xxx'
 EMAIL='xx@xx.xx'
 
-# EMERGE_ARGS='-avu'
-EMERGE_ARGS='-u --newuse'
+EMERGE_ARGS='-u --quiet-build --autounmask-continue --newuse'
 
 function prestage() {
     wget $URL/etc-config/packages.use -O /etc/portage/package.use
     emerge --sync
-    emerge $EMERGE_ARGS --autounmask-continue portage
-    emerge $EMERGE_ARGS --autounmask-continue vixie-cron nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo asterisk exim =app-crypt/gnupg-1.4.21 dev-vcs/git
+    install_pkg "portage"
+    install_pkg "vixie-cron nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo exim app-crypt/gnupg dev-vcs/git"
 }
 
 function install_csf() {
-    emerge $EMERGE_ARGS --autounmask-continue dev-perl/libwww-perl
+    install_pkg "dev-perl/libwww-perl"
 }
 
 function configure_phpfpm() {
@@ -66,7 +65,7 @@ EOF
 
 # do_letsencrypt sip.domain.com
 function do_letsencrypt() {
-    emerge $EMERGE_ARGS --autounmask-continue certbot
+    install_pkg certbot
     mkdir -p /var/www/html
     certbot certonly --email $2 --non-interactive --agree-tos --no-eff-email --webroot --webroot-path /var/www/html -d $1
 }
@@ -101,6 +100,50 @@ function do_preinstall_fixes() {
     cp /etc/pam.d/sudo /etc/pam.d/runuser
 }
 
+function do_install_asterisk() {
+	cd /usr/portage/net-misc/asterisk
+	version=13.19.0-r1
+	if [ ! -f asterisk-$version.ebuild ]; then
+		echo "ebuild file asterisk-$version.ebuild not found"
+		exit 1
+	fi
+	sed -i 's/$(use_with pjproject)/--with-pjproject-bundled/' asterisk-$version.ebuild
+	ebuild asterisk-$version.ebuild manifest
+	install_pkg =net-misc/asterisk-$version
+}
+
+function do_install_unixodbc() {
+	install_pkg unixODBC
+	cd /tmp
+	wget https://dev.mysql.com/get/Downloads/Connector-ODBC/5.3/mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit.tar.gz
+	tar xvf mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit.tar.gz
+	cp mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit/lib/*.so /usr/lib64 -v
+	cd -
+	
+	cat << EOF > /etc/unixODBC/odbcinst.ini
+[MySQL]
+Description = ODBC for MySQL
+Driver=/usr/lib64/libmyodbc5a.so
+Setup=/usr/lib64/libmyodbc5a.so
+#Driver = /usr/lib/x86_64-linux-gnu/odbc/libmyodbc.so
+#Setup = /usr/lib/x86_64-linux-gnu/odbc/libodbcmyS.so
+FileUsage       = 1
+;UsageCount = 2
+EOF
+
+	cat << EOF > /etc/unixODBC/odbc.ini
+[MySQL-asteriskcdrdb]
+Description=MySQL connection to 'asteriskcdrdb' database
+driver=MySQL
+server=localhost
+database=asteriskcdrdb
+Port=3306
+Socket=/var/run/mysqld/mysqld.sock
+option=3
+Charset=utf8
+EOF
+}
+
 function do_install_freepbx() {
     cd /var/www
     [ ! -f "freepbx-14.0-latest.tgz" ] && wget http://mirror.freepbx.org/modules/packages/freepbx/freepbx-14.0-latest.tgz -O freepbx-14.0-latest.tgz
@@ -113,6 +156,18 @@ function do_install_freepbx() {
     fwconsole reload
 }
 
+function do_postinstall() {
+	# disabling chan_sip
+	cd /etc/asterisk
+	grep chan_sip.so modules.conf
+	if [ $? -eq 0 ]; then
+		sed '/chan_sip/d' modules.conf
+	fi
+	echo 'noload = chan_sip.so' >> modules.conf
+	fwconsole ma downloadinstall bulkhandler cel cidlookup asteriskinfo ringgroups timeconditions announcement 
+	fwconsole reload
+}
+
 function configure_exim() {
     mkdir /var/log/exim && chown mail:mail /var/log/exim
     cd /etc/exim && cp exim.conf.dist exim.conf 
@@ -121,9 +176,20 @@ function configure_exim() {
     /etc/init.d/exim restart
 }
 function configure_acpid() {
-    emerge $EMERGE_ARGS acpid
+    install_pkg acpid
     rc-update add acpid
     /etc/init.d/acpid restart
+}
+
+function install_pkg() {
+	cmd="emerge $EMERGE_ARGS $1"
+	echo "Calling $cmd"
+	$cmd
+	ret_code=$?
+	if [ $ret_code -ne 0 ]; then
+		echo "Return code is $ret_code"
+		exit 1
+	fi
 }
 
 prestage
@@ -135,5 +201,8 @@ configure_autostart
 configure_exim
 configure_acpid
 configure_mysql
+do_install_asterisk
+do_install_unixodbc
 do_preinstall_fixes
 do_install_freepbx
+do_postinstall

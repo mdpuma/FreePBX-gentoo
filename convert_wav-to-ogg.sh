@@ -4,18 +4,14 @@
 
 MONITOR_PATH=/var/spool/asterisk/monitor
 
-#FILES=`find $MONITOR_PATH -name \*.wav -type f -print`
 FILES=`find $MONITOR_PATH -name \*.wav -type f -mtime +30 -print`
 
-for input in $FILES; do
+find $MONITOR_PATH -name \*.wav -type f -mtime +30 -print | while read input
 	output="`echo $input | sed -E 's/wav/ogg/'`"
 	recording_name="`basename $input`"
 	echo "Processing $input"
-	sox $input $output
-	chown asterisk:asterisk $output
+	sox "$input" "$output"
+	chown asterisk:asterisk "$output"
 	mysql asteriskcdrdb -e "update cdr set recordingfile=REPLACE(recordingfile, 'wav','ogg') where recordingfile='$recording_name';"
-	rm $input -v
+	rm "$input" -v
 done
-
-# mysql asteriskcdrdb -e "update cdr set recordingfile=REPLACE(recordingfile, 'wav','ogg');"
-# mysql asteriskcdrdb -e "update cdr set recordingfile=REPLACE(recordingfile, 'wav','ogg') where calldate < NOW() - INTERVAL 30 DAY;"
