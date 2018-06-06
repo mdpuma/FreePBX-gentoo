@@ -12,6 +12,7 @@ function prestage() {
     emerge --sync
     install_pkg "portage"
     install_pkg "vixie-cron nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo exim app-crypt/gnupg dev-vcs/git"
+    rc-update add vixie-cron
 }
 
 function install_csf() {
@@ -157,13 +158,18 @@ function do_install_freepbx() {
 }
 
 function do_postinstall() {
-	# disabling chan_sip
 	cd /etc/asterisk
-	grep chan_sip.so modules.conf
-	if [ $? -eq 0 ]; then
-		sed '/chan_sip/d' modules.conf
-	fi
-	echo 'noload = chan_sip.so' >> modules.conf
+	
+	# disabling unnecessary modules
+	modules="chan_sip.so cel_manager.so cel_odbc.so"
+	for i in $modules; do
+		grep $i modules.conf
+		if [ $? -eq 0 ]; then
+			sed -i "/$i/d" modules.conf
+		fi
+		echo "noload = $i" >> modules.conf
+	done
+	
 	fwconsole ma downloadinstall bulkhandler cel cidlookup asteriskinfo ringgroups timeconditions announcement 
 	fwconsole reload
 }

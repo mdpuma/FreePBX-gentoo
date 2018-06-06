@@ -6,7 +6,7 @@ MONITOR_PATH=/var/spool/asterisk/monitor
 
 FILES=`find $MONITOR_PATH -name \*.wav -type f -mtime +30 -print`
 
-find $MONITOR_PATH -name \*.wav -type f -mtime +30 -print | while read input
+find $MONITOR_PATH -name \*.wav -type f -mtime +30 -print | while read input; do
 	output="`echo $input | sed -E 's/wav/ogg/'`"
 	recording_name="`basename $input`"
 	echo "Processing $input"
