@@ -31,7 +31,6 @@ function configure_phpfpm() {
     wget $URL/etc-config/php.ini.txt -O /etc/php/fpm-php5.6/php.ini
     wget $URL/etc-config/php.ini.txt -O /etc/php/cli-php5.6/php.ini
     chmod +x /etc/init.d/php-fpm
-    /etc/init.d/php-fpm restart
 }
 
 function configure_autostart() {
@@ -152,12 +151,15 @@ function do_install_freepbx() {
     cd /var/www/freepbx
     /etc/init.d/asterisk restart
     ./install --dbpass=$DBPASS --no-interaction
-    wget -O - $URL/cdr_config.php | php
     /etc/init.d/asterisk restart
     fwconsole reload
 }
 
 function do_postinstall() {
+	# restart php-fpm
+	/etc/init.d/php-fpm restart
+	/etc/init.d/vixie-cron restart
+	
 	cd /etc/asterisk
 	
 	# disabling unnecessary modules
