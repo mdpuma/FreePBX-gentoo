@@ -205,7 +205,6 @@ configure_nginx $DOMAIN
 do_letsencrypt $DOMAIN $EMAIL
 configure_nginx2 $DOMAIN
 configure_phpfpm
-configure_autostart
 configure_exim
 configure_acpid
 configure_mysql
@@ -213,4 +212,5 @@ do_install_asterisk
 do_install_unixodbc
 do_preinstall_fixes
 do_install_freepbx
+configure_autostart
 do_postinstall
