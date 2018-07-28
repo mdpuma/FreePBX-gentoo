@@ -11,7 +11,7 @@ function prestage() {
     wget $URL/etc-config/packages.use -O /etc/portage/package.use
     emerge --sync
     install_pkg "portage"
-    install_pkg "vixie-cron nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo exim app-crypt/gnupg dev-vcs/git"
+    install_pkg "vixie-cron nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo exim app-crypt/gnupg dev-vcs/git logrotate"
     rc-update add vixie-cron
 }
 
@@ -160,16 +160,14 @@ function do_postinstall() {
 	/etc/init.d/php-fpm restart
 	/etc/init.d/vixie-cron restart
 	
-	cd /etc/asterisk
-	
 	# disabling unnecessary modules
 	modules="chan_sip.so cel_manager.so cel_odbc.so"
 	for i in $modules; do
-		grep $i modules.conf
+		grep $i /etc/asterisk/modules.conf
 		if [ $? -eq 0 ]; then
-			sed -i "/$i/d" modules.conf
+			sed -i "/$i/d" /etc/asterisk/modules.conf
 		fi
-		echo "noload = $i" >> modules.conf
+		echo "noload = $i" >> /etc/asterisk/modules.conf
 	done
 	
 	fwconsole ma downloadinstall bulkhandler cel cidlookup asteriskinfo ringgroups timeconditions announcement 
