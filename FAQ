@@ -5,3 +5,8 @@ A: Go to FreePBX -> Advanced settigs and disable: 'Display CallerID on Calling P
 
 Q: Transferred call to extension, are forwarded to mobile phone. Caller ID at this moment is from First call initiator.
 A: Set CID Options in trunk edit to Block foreign cid
+
+Q: Clean call recordings with 44byte size caused by Queue
+A: Add to crontab following line
+
+0 0 * * * find /var/spool/asterisk/monitor -type f -size 44c -exec rm -f {} \;
