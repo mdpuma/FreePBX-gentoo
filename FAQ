@@ -10,3 +10,18 @@ Q: Clean call recordings with 44byte size caused by Queue
 A: Add to crontab following line
 
 0 0 * * * find /var/spool/asterisk/monitor -type f -size 44c -exec rm -f {} \;
+
+
+Q: How to check who's register on pjsip extension
+A: Run following command:
+
+# cat /var/log/asterisk/full | grep res_pjsip/pjsip_configuration.c | grep -i "is now reachable."
+# cat /var/log/asterisk/full | grep res_pjsip/pjsip_configuration.c | grep -i "is now unreachable."
+# cat /var/log/asterisk/full | grep res_pjsip/pjsip_configuration.c
+
+
+Q: When we receive error like "Module "Core" signed by an invalid key." in freepbx web page.
+
+A: Run following command:
+# /usr/bin/gpg --homedir /var/lib/asterisk/.gnupg --no-permission-warning --keyserver-options auto-key-retrieve=true,timeout=10 \ 
+  --key server pool.sks-keyservers.net --refresh-keys

@@ -9,6 +9,7 @@ $token    = 'API'; //iphostmd_bot
 $o        = getopt('', array(
     'action:',
     'msg:',
+    'fileurl:',
     'chat:',
     'debug:'
 ));
@@ -38,6 +39,23 @@ switch (@$o['action']) {
             'text' => $o['msg']
         );
         $return  = $telegram->sendMessage($content);
+        var_dump($return);
+        break;
+    }
+    case 'sendaudio': {
+        if (!isset($o['fileurl'])) {
+            die("empty file argument\n");
+        }
+        if (isset($o['chat']) && is_numeric($o['chat'])) {
+            $chat_id = $o['chat'];
+        } else {
+            die("Please complete chat argument with chat_id\n");
+        }
+        $content = array(
+            'chat_id' => $chat_id,
+            'audio' => $o['fileurl'],
+        );
+        $return  = $telegram->sendAudio($content);
         var_dump($return);
         break;
     }
