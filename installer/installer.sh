@@ -68,6 +68,7 @@ function do_letsencrypt() {
     install_pkg certbot
     mkdir -p /var/www/html
     certbot certonly --email $2 --non-interactive --agree-tos --no-eff-email --webroot --webroot-path /var/www/html -d $1
+    echo "0 0 1,15 * *  /usr/bin/certbot renew && /etc/init.d/nginx reload" > /etc/cron.d/certbot
 }
 
 # configure_nginx (pre letsencrypt)

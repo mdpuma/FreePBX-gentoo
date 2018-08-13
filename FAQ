@@ -25,3 +25,21 @@ Q: When we receive error like "Module "Core" signed by an invalid key." in freep
 A: Run following command:
 # /usr/bin/gpg --homedir /var/lib/asterisk/.gnupg --no-permission-warning --keyserver-options auto-key-retrieve=true,timeout=10 \ 
   --key server pool.sks-keyservers.net --refresh-keys
+  
+  
+Q: res_pjsip_transport_management.c:133 idle_sched_cb: Shutting down transport 'TCP to xxx.xxx.xxx.xx:xx' since no request was received in 32 seconds
+A: This is caused by following things:
+1) timer_b variable acting as timeout from last received INVITE from client
+2) sip client didn't send OPTIONS as keep alive mechanism
+ 
+ https://github.com/asterisk/asterisk/blob/a103221de299bef698a868cb3f2daf99207c6d03/res/res_pjsip/include/res_pjsip_private.h
+ * The transport management module is responsible for 3 things...
+ * 1.  It automatically destroys any reliable transport that does not
+ * receive a valid request within system/timer_b milliseconds of the
+ * connection being opened. (Attack mitigation)
+ * 2.  Since it increments the reliable transport's reference count
+ * for that period of time, it also prevents issues if the transport
+ * disconnects while we're still trying to process a response.
+ *  (Attack mitigation)
+ * 3.  If enabled by global/keep_alive_interval, it sends '\r\n'
+ * keepalives on reliable transports at the interval specified.
