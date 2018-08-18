@@ -1,0 +1,21 @@
+; chanspy with password
+[app-chanspy]
+exten => 556,1,Macro(user-callerid)
+same => n,Authenticate(9418)
+same => n,Read(SPYNUM,agent-newlocation)
+same => n,ChanSpy(SIP/${SPYNUM},wqc(#)v(-1))
+
+
+; chanspy && whisper
+[app-chanspy]
+include => app-chanspy-custom
+exten => 555,1,Macro(user-callerid,)
+same => n,Answer
+same => n,Wait(1)
+same => n,ChanSpy(,sc(*))
+same => n,Hangup
+
+exten => 500,1,Macro(user-callerid)
+;same => n,Authenticate(9418)
+same => n,Read(SPYNUM,agent-newlocation)
+same => n,ChanSpy(PJSIP/${SPYNUM},wsc(*)v(-1))

@@ -20,7 +20,7 @@ same => n,Return()
 exten => install,1,Set(CHANNEL(hangup_handler_wipe)=hangup-hook1,run,1)
 same => n,Return()
 exten => run,1,noop(hangup-hook1)
-same => n,GotoIf($["${ABANDONED}"!="TRUE"]?label1)
+same => n,GotoIf($["${ABANDONED}"!="TRUE" && "${QUEUENUM}"!=""]?label1)
 same => n,System(/var/lib/asterisk/bin/hangup_handler.php --action=notifynow --src="${CALLERID(num)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${DIALSTATUS}")
 same => n(label1),Return()
 
