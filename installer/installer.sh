@@ -1,4 +1,7 @@
 #!/bin/bash
+# 
+# Caution, this script will reinstall nginx, php-fpm, mariadb configuration and database
+#
 
 URL="https://raw.githubusercontent.com/mdpuma/FreePBX-gentoo/master/installer"
 DBPASS="$(openssl rand -base64 32 | md5sum |cut -d ' ' -f1)"
@@ -9,7 +12,8 @@ EMERGE_ARGS='-u --quiet-build --autounmask-continue --newuse'
 
 function prestage() {
     wget $URL/etc-config/packages.use -O /etc/portage/package.use
-    emerge --sync
+    emerge --sync >/dev/null
+    echo "emerge sync return code is $?"
     install_pkg "portage"
     install_pkg "vixie-cron nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo exim app-crypt/gnupg dev-vcs/git logrotate"
     rc-update add vixie-cron
@@ -59,6 +63,7 @@ EOF
     
     wget $URL/etc-config/mysql.openrc.init -O /etc/init.d/mysql
     chmod +x /etc/init.d/mysql
+    rm /var/lib/mysql/ -Rfv
     emerge --config mariadb
     /etc/init.d/mysql restart
 }
@@ -116,9 +121,12 @@ function do_install_asterisk() {
 function do_install_unixodbc() {
 	install_pkg unixODBC
 	cd /tmp
-	wget https://dev.mysql.com/get/Downloads/Connector-ODBC/5.3/mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit.tar.gz
+	if [ ! -f "mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit.tar.gz" ]; then
+		wget https://dev.mysql.com/get/Downloads/Connector-ODBC/5.3/mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit.tar.gz
+	fi
 	tar xvf mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit.tar.gz
 	cp mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit/lib/*.so /usr/lib64 -v
+	rm /tmp/mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit/ -Rf
 	cd -
 	
 	cat << EOF > /etc/unixODBC/odbcinst.ini
