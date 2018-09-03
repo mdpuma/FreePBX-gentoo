@@ -23,7 +23,7 @@ A: Run following command:
 Q: When we receive error like "Module "Core" signed by an invalid key." in freepbx web page.
 
 A: Run following command:
-# /usr/bin/gpg --homedir /var/lib/asterisk/.gnupg --no-permission-warning --keyserver-options auto-key-retrieve=true,timeout=10 \ 
+# /usr/bin/gpg --homedir /var/lib/asterisk/.gnupg --no-permission-warning --keyserver-options auto-key-retrieve=true,timeout=10 \
   --key server pool.sks-keyservers.net --refresh-keys
   
   
