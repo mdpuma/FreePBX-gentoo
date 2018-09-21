@@ -15,8 +15,8 @@ function prestage() {
     emerge --sync >/dev/null
     echo "emerge sync return code is $?"
     install_pkg "portage"
-    install_pkg "vixie-cron nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo exim app-crypt/gnupg dev-vcs/git logrotate app-editors/vim"
-    rc-update add vixie-cron
+    install_pkg "cronie nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo exim app-crypt/gnupg dev-vcs/git logrotate app-editors/vim"
+    rc-update add cronie
     eselect editor set vi
 }
 
@@ -168,7 +168,7 @@ function do_install_freepbx() {
 function do_postinstall() {
 	# restart php-fpm
 	/etc/init.d/php-fpm restart
-	/etc/init.d/vixie-cron restart
+	/etc/init.d/cronie restart
 	
 	# disabling unnecessary modules
 	modules="chan_sip.so cel_manager.so cel_odbc.so"
