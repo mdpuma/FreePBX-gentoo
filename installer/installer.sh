@@ -11,7 +11,7 @@ EMAIL='xx@xx.xx'
 EMERGE_ARGS='-u --quiet-build --autounmask-continue --newuse'
 
 function prestage() {
-    wget $URL/etc-config/packages.use -O /etc/portage/package.use
+    wget --quiet $URL/etc-config/packages.use -O /etc/portage/package.use
     emerge --sync >/dev/null
     echo "emerge sync return code is $?"
     install_pkg "portage"
@@ -31,10 +31,10 @@ function configure_phpfpm() {
     fi
     eselect php set cli php5.6
     eselect php set fpm php5.6
-    wget $URL/etc-config/php-fpm.openrc.init -O /etc/init.d/php-fpm
-    wget $URL/etc-config/php-fpm.conf -O /etc/php/fpm-php5.6/php-fpm.conf
-    wget $URL/etc-config/php.ini.txt -O /etc/php/fpm-php5.6/php.ini
-    wget $URL/etc-config/php.ini.txt -O /etc/php/cli-php5.6/php.ini
+    wget --quiet $URL/etc-config/php-fpm.openrc.init -O /etc/init.d/php-fpm
+    wget --quiet $URL/etc-config/php-fpm.conf -O /etc/php/fpm-php5.6/php-fpm.conf
+    wget --quiet $URL/etc-config/php.ini.txt -O /etc/php/fpm-php5.6/php.ini
+    wget --quiet $URL/etc-config/php.ini.txt -O /etc/php/cli-php5.6/php.ini
     chmod +x /etc/init.d/php-fpm
 }
 
@@ -62,8 +62,10 @@ function configure_mysql() {
 password='$DBPASS'
 EOF
     
-    wget $URL/etc-config/mysql.openrc.init -O /etc/init.d/mysql
+    wget --quiet $URL/etc-config/mysql.openrc.init -O /etc/init.d/mysql
     chmod +x /etc/init.d/mysql
+    
+    /etc/init.d/mysql stop
     rm /var/lib/mysql/ -Rfv
     emerge --config mariadb
     /etc/init.d/mysql restart
@@ -80,15 +82,15 @@ function do_letsencrypt() {
 # configure_nginx (pre letsencrypt)
 function configure_nginx() {
     mkdir /etc/nginx/conf.d -p
-    wget $URL/etc-config/nginx.conf -O /etc/nginx/nginx.conf
-    wget $URL/etc-config/nginx-certbot.conf -O /etc/nginx/conf.d/freepbx.conf
+    wget --quiet $URL/etc-config/nginx.conf -O /etc/nginx/nginx.conf
+    wget --quiet $URL/etc-config/nginx-certbot.conf -O /etc/nginx/conf.d/freepbx.conf
     sed -iE "s/{{domain}}/$1/g" /etc/nginx/conf.d/freepbx.conf
     /etc/init.d/nginx restart
 }
 
 # configure_nginx (post letsencrypt)
 function configure_nginx2() {
-    wget $URL/etc-config/nginx-freepbx.conf -O /etc/nginx/conf.d/freepbx.conf
+    wget --quiet $URL/etc-config/nginx-freepbx.conf -O /etc/nginx/conf.d/freepbx.conf
     [ ! -f /etc/nginx/dhparam.pem ] && openssl dhparam -out /etc/nginx/dhparam.pem 2048
     sed -iE "s/{{domain}}/$1/g" /etc/nginx/conf.d/freepbx.conf
     /etc/init.d/nginx restart
@@ -97,7 +99,7 @@ function configure_nginx2() {
 function do_preinstall_fixes() {
     ln -s /bin/ifconfig /sbin
     sed -i '/directories/s/(!)//' /etc/asterisk/asterisk.conf
-    wget $URL/etc-config/logrotate-asterisk -O /etc/logrotate.d/asterisk
+    wget --quiet $URL/etc-config/logrotate-asterisk -O /etc/logrotate.d/asterisk
     rm /etc/freepbx.conf /etc/amportal.conf -v
     rm /etc/asterisk/* -rfv
     rm /var/www/html/* -rf
@@ -123,9 +125,9 @@ function do_install_unixodbc() {
 	install_pkg unixODBC
 	cd /tmp
 	if [ ! -f "mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit.tar.gz" ]; then
-		wget https://dev.mysql.com/get/Downloads/Connector-ODBC/5.3/mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit.tar.gz
+		wget --quiet https://dev.mysql.com/get/Downloads/Connector-ODBC/5.3/mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit.tar.gz
 	fi
-	tar xvf mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit.tar.gz
+	tar xf mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit.tar.gz
 	cp mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit/lib/*.so /usr/lib64 -v
 	rm /tmp/mysql-connector-odbc-5.3.10-linux-glibc2.12-x86-64bit/ -Rf
 	cd -
@@ -156,7 +158,7 @@ EOF
 
 function do_install_freepbx() {
     cd /var/www
-    [ ! -f "freepbx-14.0-latest.tgz" ] && wget http://mirror.freepbx.org/modules/packages/freepbx/freepbx-14.0-latest.tgz -O freepbx-14.0-latest.tgz
+    [ ! -f "freepbx-14.0-latest.tgz" ] && wget --quiet http://mirror.freepbx.org/modules/packages/freepbx/freepbx-14.0-latest.tgz -O freepbx-14.0-latest.tgz
     tar xf freepbx-14.0-latest.tgz
     cd /var/www/freepbx
     /etc/init.d/asterisk restart
@@ -188,7 +190,7 @@ function configure_exim() {
     mkdir /var/log/exim && chown mail:mail /var/log/exim
     cd /etc/exim && cp exim.conf.dist exim.conf 
     rc-update add exim
-    wget $URL/etc-config/exim.conf -O /etc/logrotate.d/asterisk
+    wget --quiet $URL/etc-config/exim.conf -O /etc/logrotate.d/asterisk
     /etc/init.d/exim restart
 }
 function configure_acpid() {
