@@ -8,6 +8,12 @@ DBPASS="$(openssl rand -base64 32 | md5sum |cut -d ' ' -f1)"
 DOMAIN='xxx'
 EMAIL='xx@xx.xx'
 
+# clean mysql config
+CLEAN_MYSQL=1
+
+# install munin
+USE_MUNIN=1
+
 EMERGE_ARGS='-u --quiet-build --autounmask-continue --newuse'
 
 function prestage() {
@@ -15,9 +21,43 @@ function prestage() {
     emerge --sync >/dev/null
     echo "emerge sync return code is $?"
     install_pkg "portage"
-    install_pkg "cronie nginx php:7.0 mariadb pear PEAR-Console_Getopt sox mpg123 sudo exim app-crypt/gnupg dev-vcs/git logrotate app-editors/vim"
+    install_pkg "cronie nginx php:7.0 mariadb pear PEAR-Console_Getopt sox mpg123 sudo exim app-crypt/gnupg dev-vcs/git logrotate app-editors/vim chrony"
     rc-update add cronie
+    rc-update add chronyd
     eselect editor set vi
+}
+
+function install_munin() {
+	if [ $USE_MUNIN -ne 1 ]; then
+		exit
+	fi
+	
+	install_pkg "net-analyzer/munin"
+	
+	munin-node-configure --shell | grep -E "^ln" | sh
+	
+	HOSTNAME=`hostname`
+	IP=`curl -q http://2ip.ru -L`
+
+	sed -E "/host_name/s/^(.*)$/host_name $HOSTNAME/" /etc/munin/munin-node.conf -i
+	grep -i $MASTER_IP /etc/munin/munin-node.conf >/dev/null
+	[[ $? -ne 0 ]] && echo "cidr_allow $MASTER_IP/32" >> /etc/munin/munin-node.conf
+	rc-update add munin-node
+	/etc/init.d/munin-node start
+}
+
+function postinstall_munin() {
+	if [ $USE_MUNIN -ne 1 ]; then
+		exit
+	fi
+	
+	HOSTNAME=`hostname`
+	IP=`curl -q http://2ip.ru -L`
+	
+	cat <<EOF
+[client;$HOSTNAME]
+        address $IP
+EOF
 }
 
 function install_csf() {
@@ -167,6 +207,19 @@ function do_install_freepbx() {
     fwconsole reload
 }
 
+function configure_exim() {
+    mkdir /var/log/exim && chown mail:mail /var/log/exim
+    cd /etc/exim && cp exim.conf.dist exim.conf 
+    rc-update add exim
+    wget --quiet $URL/etc-config/exim.conf -O /etc/logrotate.d/asterisk
+    /etc/init.d/exim restart
+}
+function configure_acpid() {
+    install_pkg acpid
+    rc-update add acpid
+    /etc/init.d/acpid restart
+}
+
 function do_postinstall() {
 	# restart php-fpm
 	/etc/init.d/php-fpm restart
@@ -186,19 +239,6 @@ function do_postinstall() {
 	fwconsole reload
 }
 
-function configure_exim() {
-    mkdir /var/log/exim && chown mail:mail /var/log/exim
-    cd /etc/exim && cp exim.conf.dist exim.conf 
-    rc-update add exim
-    wget --quiet $URL/etc-config/exim.conf -O /etc/logrotate.d/asterisk
-    /etc/init.d/exim restart
-}
-function configure_acpid() {
-    install_pkg acpid
-    rc-update add acpid
-    /etc/init.d/acpid restart
-}
-
 function install_pkg() {
 	cmd="emerge $EMERGE_ARGS $1"
 	echo "Calling $cmd"
@@ -211,6 +251,7 @@ function install_pkg() {
 }
 
 prestage
+install_munin
 configure_nginx $DOMAIN
 do_letsencrypt $DOMAIN $EMAIL
 configure_nginx2 $DOMAIN
@@ -224,3 +265,4 @@ do_preinstall_fixes
 do_install_freepbx
 configure_autostart
 do_postinstall
+postinstall_munin

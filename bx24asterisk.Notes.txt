@@ -1,0 +1,4 @@
+This integration didn't work with glibc newer than 2.26
+
+
+https://mirror.sergal.org/gnu/glibc/glibc-2.12.2.tar.bz2
