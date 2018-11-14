@@ -120,6 +120,10 @@ function do_letsencrypt() {
     install_pkg certbot
     mkdir -p /var/www/html
     certbot certonly --email $2 --non-interactive --agree-tos --no-eff-email --webroot --webroot-path /var/www/html -d $1
+    if [ $? -ne 0 ]; then
+		echo "Can't get signed let's encrypt ssl certificate, error code $?"
+		exit 1
+	fi
     echo "0 0 1,15 * *  /usr/bin/certbot renew && /etc/init.d/nginx reload" > /etc/cron.d/certbot
 }
 
