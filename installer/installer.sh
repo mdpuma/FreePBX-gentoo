@@ -87,6 +87,10 @@ function configure_autostart() {
 }
 
 function configure_mysql() {
+	if [ $CLEAN_MYSQL -eq 1 ]; then
+		rm /root/.my.cnf
+	fi
+	
     if [ -f /root/.my.cnf ]; then
         echo "mysqld is configured, skipping\n"
         return
