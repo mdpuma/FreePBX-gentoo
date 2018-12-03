@@ -38,6 +38,7 @@ function install_munin() {
 	
 	HOSTNAME=`hostname`
 	IP=`curl -q http://2ip.ru -L`
+	MASTER_IP="185.181.228.5"
 
 	sed -E "/host_name/s/^(.*)$/host_name $HOSTNAME/" /etc/munin/munin-node.conf -i
 	grep -i $MASTER_IP /etc/munin/munin-node.conf >/dev/null
@@ -97,6 +98,7 @@ function configure_mysql() {
     fi
     sed -iE 's/^\(log-bin\)/#\1/' /etc/mysql/my.cnf
     sed -iE 's/^tmpdir.*/tmpdir = \/tmpfs/' /etc/mysql/my.cnf
+    sed -iE 's/^innodb_buffer_pool_size.*/innodb_buffer_pool_size=128M/' /etc/mysql/my.cnf
     
     mkdir /tmpfs
     chmod 777 /tmpfs
@@ -112,7 +114,7 @@ EOF
     /etc/init.d/mysql stop
     rm /var/lib/mysql/ -Rfv
     emerge --config mariadb
-    /etc/init.d/mysql restart
+    /etc/init.d/mysql start
 }
 
 # do_letsencrypt sip.domain.com

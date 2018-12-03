@@ -1,5 +1,5 @@
 dev-db/mariadb odbc
-net-misc/asterisk curl http mysql odbc pjproject
+net-misc/asterisk curl http -mysql odbc -pjproject
 dev-lang/php cli mysql mysqli opcache fpm pdo curl gd mbstring gettext
 media-sound/sox flac opus ogg wavpack
 media-video/ffmpeg vorbis
