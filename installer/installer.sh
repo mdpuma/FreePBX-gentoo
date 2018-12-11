@@ -11,6 +11,9 @@ EMAIL='xx@xx.xx'
 # clean mysql config
 CLEAN_MYSQL=1
 
+# patch asterisk with pjproject bundled
+PATCH_ASTERISK=0
+
 # install munin
 USE_MUNIN=1
 
@@ -160,14 +163,18 @@ function do_preinstall_fixes() {
 }
 
 function do_install_asterisk() {
-	cd /usr/portage/net-misc/asterisk
 	version=13.23.1
-	if [ ! -f asterisk-$version.ebuild ]; then
-		echo "ebuild file asterisk-$version.ebuild not found"
-		exit 1
+	
+	if [ $PATCH_ASTERISK -eq 1 ]; then
+		cd /usr/portage/net-misc/asterisk
+		
+		if [ ! -f asterisk-$version.ebuild ]; then
+			echo "ebuild file asterisk-$version.ebuild not found"
+			exit 1
+		fi
+		sed -i 's/$(use_with pjproject)/--with-pjproject-bundled/' asterisk-$version.ebuild
+		ebuild asterisk-$version.ebuild manifest
 	fi
-	sed -i 's/$(use_with pjproject)/--with-pjproject-bundled/' asterisk-$version.ebuild
-	ebuild asterisk-$version.ebuild manifest
 	install_pkg =net-misc/asterisk-$version
 }
 
