@@ -14,6 +14,9 @@ CLEAN_MYSQL=1
 # patch asterisk with pjproject bundled
 PATCH_ASTERISK=0
 
+# 
+DISABLE_CHANSIP=0
+
 # install munin
 USE_MUNIN=1
 
@@ -129,7 +132,7 @@ function do_letsencrypt() {
 		echo "Can't get signed let's encrypt ssl certificate, error code $?"
 		exit 1
 	fi
-    echo "0 0 1,15 * *  /usr/bin/certbot renew && /etc/init.d/nginx reload" > /etc/cron.d/certbot
+    echo "0 0 1,15 * *  /usr/bin/certbot renew && /etc/init.d/nginx reload" > /etc/cron.daily/1_certbot
 }
 
 # configure_nginx (pre letsencrypt)
@@ -246,6 +249,9 @@ function do_postinstall() {
 	modules="chan_sip.so cel_manager.so cel_odbc.so"
 	for i in $modules; do
 		grep $i /etc/asterisk/modules.conf
+		
+		[ $i = "chan_sip.so" ] && [ $DISABLE_CHANSIP -ne 1 ] && continue;
+		
 		if [ $? -eq 0 ]; then
 			sed -i "/$i/d" /etc/asterisk/modules.conf
 		fi
