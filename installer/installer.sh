@@ -14,7 +14,7 @@ CLEAN_MYSQL=1
 # patch asterisk with pjproject bundled
 PATCH_ASTERISK=0
 
-# 
+# disable chan_sip.so module ?
 DISABLE_CHANSIP=0
 
 # install munin
