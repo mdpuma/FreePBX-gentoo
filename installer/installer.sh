@@ -27,7 +27,7 @@ function prestage() {
     emerge --sync >/dev/null
     echo "emerge sync return code is $?"
     install_pkg "portage"
-    install_pkg "cronie nginx php:7.0 mariadb pear PEAR-Console_Getopt sox mpg123 sudo exim app-crypt/gnupg dev-vcs/git logrotate app-editors/vim chrony"
+    install_pkg "cronie nginx php:5.6 mariadb pear PEAR-Console_Getopt sox mpg123 sudo exim app-crypt/gnupg dev-vcs/git logrotate app-editors/vim chrony"
     rc-update add cronie
     rc-update add chronyd
     eselect editor set vi
@@ -72,16 +72,16 @@ function install_csf() {
 }
 
 function configure_phpfpm() {
-    if [ ! -d /etc/php/fpm-php7.0 ]; then
-        echo "configure_phpfpm() php-fpm7.0 doesn't exists, check directory /etc/php/fpm-php7.0"
+    if [ ! -d /etc/php/fpm-php5.6 ]; then
+        echo "configure_phpfpm() php-fpm5.6 doesn't exists, check directory /etc/php/php-fpm5.6"
         exit 1
     fi
-    eselect php set cli php7.0
-    eselect php set fpm php7.0
+    eselect php set cli php5.6
+    eselect php set fpm php5.6
     wget --quiet $URL/etc-config/php-fpm.openrc.init -O /etc/init.d/php-fpm
-    wget --quiet $URL/etc-config/php-fpm.conf -O /etc/php/fpm-php7.0/php-fpm.conf
-    wget --quiet $URL/etc-config/php.ini.txt -O /etc/php/fpm-php7.0/php.ini
-    wget --quiet $URL/etc-config/php.ini.txt -O /etc/php/cli-php7.0/php.ini
+    wget --quiet $URL/etc-config/php-fpm.conf -O /etc/php/fpm-php5.6/php-fpm.conf
+    wget --quiet $URL/etc-config/php.ini.txt -O /etc/php/fpm-php5.6/php.ini
+    wget --quiet $URL/etc-config/php.ini.txt -O /etc/php/cli-php5.6/php.ini
     chmod +x /etc/init.d/php-fpm
 }
 
