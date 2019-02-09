@@ -25,7 +25,7 @@ function store_missed_call($o, $file) {
 
 function send_missed_call_email_report($destination, $config, $attachment) {
     $mail = new PHPMailer();
-    if ($config['email']['smtp'] == 1) {
+    if ($config['email']['use_smtp'] == 1) {
         $mail->isSMTP();
         $mail->Host = $config['email']['smtphost'];
         $mail->Port = 587;
