@@ -16,6 +16,8 @@ same => n,GotoIf($["${QUEUENUM}"!="" && "${ABANDONED}"!="TRUE"]?label1)
 same => n,System(/var/lib/asterisk/bin/hangup_handler.php --action=notifynow --src="${CALLERID(num)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${DIALSTATUS}")
 same => n(label1),Return()
 
+[send_message]
+exten => s,1,System(/var/lib/asterisk/bin/hangup_handler.php --action=send_message --department="" --message="Apel departament tehnic ${CALLERID(num)} (${CALLERID(name)}), numar intrare ${CDR(dnid)}")
 
 */
 
@@ -49,12 +51,12 @@ $config = array(
         ]
     ),
     'slack' => array(
-		'default_destination' => 'CG3NKJ5QF',
+		'default_destination' => 'CFBNTQ68N', // pentru departament vinzari
 		'departments' => [
-//             'sales' => -303442075,
-//             'service' => -276061837,
-//             'tech' => -288296707
-        ]
+	             'suport' => 'CFAH14N4D', // pentru suport tehnic
+	             'billing' => 'CFATBK5GD', //pentru contabilitate
+	             'iptelefonie' => 'CFDTKFL5D' // pentru ip telefonie
+	        ]
 	),
     'debug' => 1,
 );
@@ -73,6 +75,7 @@ $o = getopt('', array(
     'dst:',
     'disposition:',
     'department:',
+    'message:',
 ));
 
 // +------------------------------+//
@@ -121,8 +124,9 @@ switch($o['action']) {
 		$hangup_handler->send_slack_msg($o['department'], $hangup_handler->get_missedcall_template($o));
 		break;
 	}
-	case 'force_notify': {
-		$hangup_handler->send_telegram_msg($o['department'], "Intrare apel pe numarul ${o['did']} de la ${o['src']} (${o['srcname']})");
+	case 'send_message': {
+		$hangup_handler->send_slack_msg($o['department'], $o['message']);
+// 		$hangup_handler->send_telegram_msg($o['department'], "Intrare apel pe numarul ${o['did']} de la ${o['src']} (${o['srcname']})");
 		break;
 	}
 }

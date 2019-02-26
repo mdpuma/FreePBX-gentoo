@@ -117,6 +117,8 @@ EOF
     wget --quiet $URL/etc-config/mysql.openrc.init -O /etc/init.d/mysql
     chmod +x /etc/init.d/mysql
     
+    # this will cause mysql init script to fix permissions for /var/run, probably which will help with emerge --config mariadb
+    /etc/init.d/mysql restart
     /etc/init.d/mysql stop
     rm /var/lib/mysql/ -Rfv
     emerge --config mariadb
