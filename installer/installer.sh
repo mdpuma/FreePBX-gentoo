@@ -260,6 +260,7 @@ function do_postinstall() {
 		echo "noload = $i" >> /etc/asterisk/modules.conf
 	done
 	
+	fwconsole ma downloadinstall calendar queues
 	fwconsole ma downloadinstall bulkhandler cel cidlookup asteriskinfo ringgroups timeconditions announcement 
 	fwconsole reload
 }

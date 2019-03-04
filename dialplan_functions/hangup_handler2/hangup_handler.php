@@ -43,20 +43,16 @@ $config = array(
     'managers_file' => '/var/lib/asterisk/bin/managers.csv',
     'notification_server_url' => 'http://sip.iphost.md:3001',
     'telegram' => array(
-        'default_destination' => -239199363,
+        'default_destination' => ,
         'departments' => [
-//             'sales' => -303442075,
-//             'service' => -276061837,
-//             'tech' => -288296707
+// 			'tech' => '',
         ]
     ),
     'slack' => array(
-		'default_destination' => 'CFBNTQ68N', // pentru departament vinzari
+		'default_destination' => '', // pentru departament vinzari
 		'departments' => [
-	             'suport' => 'CFAH14N4D', // pentru suport tehnic
-	             'billing' => 'CFATBK5GD', //pentru contabilitate
-	             'iptelefonie' => 'CFDTKFL5D' // pentru ip telefonie
-	        ]
+// 	             'tech' => '',
+		]
 	),
     'debug' => 1,
 );
@@ -120,13 +116,13 @@ switch($o['action']) {
 		$hangup_handler->check_is_missing($o);
 
 //		send_missed_call_email(get_email_destination($o['department']));
-// 		$hangup_handler->send_telegram_msg($o['department'], $hangup_handler->get_missedcall_template($o));
-		$hangup_handler->send_slack_msg($o['department'], $hangup_handler->get_missedcall_template($o));
+		$hangup_handler->send_telegram_msg($o['department'], $hangup_handler->get_missedcall_template($o));
+// 		$hangup_handler->send_slack_msg($o['department'], $hangup_handler->get_missedcall_template($o));
 		break;
 	}
 	case 'send_message': {
-		$hangup_handler->send_slack_msg($o['department'], $o['message']);
-// 		$hangup_handler->send_telegram_msg($o['department'], "Intrare apel pe numarul ${o['did']} de la ${o['src']} (${o['srcname']})");
+// 		$hangup_handler->send_slack_msg($o['department'], $o['message']);
+		$hangup_handler->send_telegram_msg($o['department'], "Intrare apel pe numarul ${o['did']} de la ${o['src']} (${o['srcname']})");
 		break;
 	}
 }
