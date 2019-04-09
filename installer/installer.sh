@@ -134,7 +134,7 @@ function do_letsencrypt() {
 		echo "Can't get signed let's encrypt ssl certificate, error code $?"
 		exit 1
 	fi
-    echo "0 0 1,15 * *  /usr/bin/certbot renew && /etc/init.d/nginx reload" > /etc/cron.daily/1_certbot
+    echo "0 0 1,15 * *  /usr/bin/certbot renew && /etc/init.d/nginx reload" >> /etc/crontab
 }
 
 # configure_nginx (pre letsencrypt)
