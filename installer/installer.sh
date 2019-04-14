@@ -118,8 +118,7 @@ EOF
     chmod +x /etc/init.d/mysql
     
     # this will cause mysql init script to fix permissions for /var/run, probably which will help with emerge --config mariadb
-    /etc/init.d/mysql restart
-    /etc/init.d/mysql stop
+    chown mysql:mysql /var/run/mysqld -Rv
     rm /var/lib/mysql/ -Rfv
     emerge --config mariadb
     /etc/init.d/mysql start
