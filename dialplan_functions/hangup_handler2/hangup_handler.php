@@ -96,7 +96,7 @@ switch($o['action']) {
 			$missedcall_file = '/tmp/missedcall_'.$department.'.csv';
 			$list = explode(",", $destination);
 			foreach($list as $email) {
-				$return = $hangup_handler->send_missed_call_email_report($email, $config, $missedcall_file);
+				$return = $hangup_handler->send_missed_call_email_report($email, $missedcall_file);
 				if(!$return) $hangup_handler->debug("Mailer Error: " . $mail->ErrorInfo);
 			}
 			@unlink($missedcall_file);
@@ -105,7 +105,7 @@ switch($o['action']) {
 		// send missedcall list for default_destination if exists
 		$missedcall_file = '/tmp/missedcall.csv';
 		if(is_file($missedcall_file)) {
-			$return = $hangup_handler->send_missed_call_email_report($config['email']['default_destination'], $config, $missedcall_file);
+			$return = $hangup_handler->send_missed_call_email_report($config['email']['default_destination'], $missedcall_file);
 			if(!$return) $hangup_handler->debug("Mailer Error: " . $mail->ErrorInfo);
 			@unlink($missedcall_file); 
 		}
