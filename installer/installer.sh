@@ -230,9 +230,18 @@ function do_install_freepbx() {
 
 function configure_exim() {
     mkdir /var/log/exim && chown mail:mail /var/log/exim
-    cd /etc/exim && cp exim.conf.dist exim.conf 
+    cd /etc/exim && cp exim.conf.dist exim.conf
+    
+    sed '/# primary_hostname =/s/# //' /etc/exim/exim.conf
+    sed "/primary_hostname/s/=/= $DOMAIN/" /etc/exim/exim.conf
+    
+    grep root: /etc/mail/aliases >/dev/null
+    [[ $? -ne 0 ]] && echo "root: $EMAIL" >> /etc/mail/aliases
+    
+    grep fail2ban: /etc/mail/aliases >/dev/null
+    [[ $? -ne 0 ]] && echo "fail2ban: /dev/null" >> /etc/mail/aliases
+    
     rc-update add exim
-    wget --quiet $URL/etc-config/exim.conf -O /etc/logrotate.d/asterisk
     /etc/init.d/exim restart
 }
 function configure_acpid() {
@@ -262,6 +271,7 @@ function do_postinstall() {
 	fwconsole ma downloadinstall calendar queues
 	fwconsole ma downloadinstall bulkhandler cel cidlookup asteriskinfo ringgroups timeconditions announcement 
 	fwconsole reload
+	/etc/init.d/asterisk restart
 }
 
 function install_pkg() {
