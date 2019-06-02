@@ -238,13 +238,13 @@ function configure_exim() {
     mkdir /var/log/exim && chown mail:mail /var/log/exim
     cd /etc/exim && cp exim.conf.dist exim.conf
     
-    sed '/# primary_hostname =/s/# //' /etc/exim/exim.conf
-    sed "/primary_hostname/s/=/= $DOMAIN/" /etc/exim/exim.conf
+    sed '/# primary_hostname =/s/# //' /etc/exim/exim.conf -i
+    sed "/primary_hostname/s/=/= $DOMAIN/" /etc/exim/exim.conf -i
     
-    grep root: /etc/mail/aliases >/dev/null
+    grep '^root:' /etc/mail/aliases >/dev/null
     [[ $? -ne 0 ]] && echo "root: $EMAIL" >> /etc/mail/aliases
     
-    grep fail2ban: /etc/mail/aliases >/dev/null
+    grep '^fail2ban:' /etc/mail/aliases >/dev/null
     [[ $? -ne 0 ]] && echo "fail2ban: /dev/null" >> /etc/mail/aliases
     
     rc-update add exim
