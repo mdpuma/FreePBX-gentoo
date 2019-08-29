@@ -102,9 +102,10 @@ function configure_mysql() {
         echo "mysqld is configured, skipping\n"
         return
     fi
-    sed -iE 's/^\(log-bin\)/#\1/' /etc/mysql/my.cnf
-    sed -iE 's/^tmpdir.*/tmpdir = \/tmpfs/' /etc/mysql/my.cnf
-    sed -iE 's/^innodb_buffer_pool_size.*/innodb_buffer_pool_size=128M/' /etc/mysql/my.cnf
+    MYCNF_FILE=/etc/mysql/mariadb.d/50-distro-server.cnf
+    sed -iE 's/^\(log-bin\)/#\1/' $MYCNF_FILE
+    sed -iE 's/^tmpdir.*/tmpdir = \/tmpfs/' $MYCNF_FILE
+    sed -iE 's/^innodb_buffer_pool_size.*/innodb_buffer_pool_size=128M/' $MYCNF_FILE
     
     mkdir /tmpfs
     chmod 777 /tmpfs
