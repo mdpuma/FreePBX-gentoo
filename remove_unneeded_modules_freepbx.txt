@@ -79,3 +79,37 @@ fwconsole ma delete webcallback
 fwconsole ma delete webrtc
 fwconsole ma delete xmpp
 fwconsole ma delete zulu
+
+
+
+fwconsole ma delete cos
+fwconsole ma delete endpoint
+fwconsole ma delete pms
+fwconsole ma delete queuestats
+fwconsole ma delete sms
+fwconsole ma delete sysadmin
+fwconsole ma delete zulu
+
+
+fwconsole ma delete contactmanager
+fwconsole ma delete customappsreg
+fwconsole ma delete dahdiconfig
+fwconsole ma delete daynight
+fwconsole ma delete digiumaddoninstaller
+fwconsole ma delete donotdisturb
+fwconsole ma delete dundicheck
+fwconsole ma delete extensionsettings
+fwconsole ma delete fax
+fwconsole ma delete hotelwakeup
+fwconsole ma delete infoservices
+fwconsole ma delete paging
+fwconsole ma delete parking
+fwconsole ma delete phonebook
+fwconsole ma delete pinsets
+fwconsole ma delete presencestate
+fwconsole ma delete queuemetrics
+fwconsole ma delete setcid
+fwconsole ma delete soundlang
+fwconsole ma delete userman
+fwconsole ma delete vega
+fwconsole ma delete voicemail
