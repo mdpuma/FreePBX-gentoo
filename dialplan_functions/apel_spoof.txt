@@ -10,8 +10,10 @@ same => n,Goto(apel_recent,s,1)
 [func-apply-sipheaders]
 exten => s,12,Noop(insert X-Spoof-From)
 same => n,GotoIf($["${INSERT_SPOOF_HEADER}"!="1"]?label22)
-same => n,Set(PJSIP_HEADER(add,X-Spoof-From)=${SPOOF_FROM})
+; same => n,Set(PJSIP_HEADER(add,X-Spoof-From)=${SPOOF_FROM})
+same => n,SIPAddHeader(X-Spoof-From:${SPOOF_FROM})
 same => n(label22),return()
 
 
-jump to apel_spoof,s,1 after from-trunk context
+
+; jump to apel_spoof,s,1 after from-trunk context
