@@ -1,5 +1,7 @@
 #!/bin/bash
 # 
+# First of all do not forget to configure static ip https://netplan.io/examples#using-dhcp-and-static-addressing
+#
 # Caution, this script will reinstall nginx, php-fpm, mariadb configuration and database
 #
 
@@ -255,6 +257,17 @@ function do_postinstall() {
 	systemctl restart asterisk
 }
 
+function configure_firewall() {
+	ufw allow 5060/udp
+	ufw allow 10000:20000/udp
+	ufw allow 80/tcp
+	ufw allow 443/tcp
+	ufw prepend allow from 185.181.228.5
+	ufw prepend allow from 185.181.228.28
+	ufw prepend allow from 89.28.42.226
+	echo 'y' | ufw enable
+}
+
 function install_pkg() {
 	cmd="apt-get install $1 $INSTALL_ARGS"
 	echo "Calling $cmd"
@@ -281,3 +294,4 @@ do_install_freepbx
 configure_autostart
 do_postinstall
 postinstall_munin
+configure_firewall
