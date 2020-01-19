@@ -27,7 +27,7 @@ function prestage() {
 	add-apt-repository ppa:ondrej/php < /dev/null
 	apt-get update && apt-get upgrade -y
 	
-	install_pkg vim openssh-server nginx mysql-server mysql-client \
+	install_pkg vim net-tools openssh-server nginx mysql-server mysql-client \
 	curl sox mpg123 sqlite3 git uuid libodbc1 unixodbc unixodbc-bin \
 	asterisk asterisk-core-sounds-en-wav asterisk-core-sounds-en-g722 \
 	asterisk-dahdi asterisk-flite asterisk-modules asterisk-mp3 asterisk-mysql \
@@ -102,12 +102,11 @@ function configure_autostart() {
 function configure_mysql() {
 	if [ $CLEAN_MYSQL -eq 1 ]; then
 		rm /root/.my.cnf
+		rm /var/lib/mysql/* -rf
+		mysqld --initialize-insecure
+		systemctl restart mysql
 	fi
 	
-    if [ -f /root/.my.cnf ]; then
-        echo "mysqld is configured, skipping\n"
-        return
-    fi
 #     MYCNF_FILE=/etc/mysql/mariadb.d/50-distro-server.cnf
 #     sed -iE 's/^\(log-bin\)/#\1/' $MYCNF_FILE
 #     sed -iE 's/^tmpdir.*/tmpdir = \/tmpfs/' $MYCNF_FILE
@@ -115,13 +114,12 @@ function configure_mysql() {
 #     
 #     mkdir /tmpfs
 #     chmod 777 /tmpfs
-#     
+
     cat << EOF >> /root/.my.cnf
 [client]
 password='$DBPASS'
 EOF
-	echo "USE mysql; UPDATE user SET plugin='mysql_native_password', authentication_string=PASSWORD('$DBPASS') WHERE user='root'; FLUSH PRIVILEGES" | mysql
-	echo "FLUSH PRIVILEGES" | mysql
+	echo "USE mysql; UPDATE user SET plugin='mysql_native_password', authentication_string=PASSWORD('$DBPASS') WHERE user='root'; FLUSH PRIVILEGES" | mysql --skip-password
 	systemctl enable mysql
 	systemctl restart mysql
 }
@@ -217,6 +215,7 @@ function do_install_freepbx() {
 function configure_exim() {
 	wget --quiet $URL/etc-config/update-exim4.conf.conf -O /etc/exim4/update-exim4.conf.conf
 	echo $DOMAIN > /etc/mailname
+	sed -iE "s/{{ domain }}/$DOMAIN/g" /etc/exim4/update-exim4.conf.conf
 	
 	update-exim4.conf
 	
@@ -257,7 +256,7 @@ function do_postinstall() {
 }
 
 function install_pkg() {
-	cmd="apt install $1 $INSTALL_ARGS"
+	cmd="apt-get install $1 $INSTALL_ARGS"
 	echo "Calling $cmd"
 	$cmd
 	ret_code=$?
