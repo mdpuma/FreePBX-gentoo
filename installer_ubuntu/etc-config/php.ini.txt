@@ -1,0 +1,10 @@
+; include_path = ".:/usr/share/php5:/usr/share/php"
+memory_limit=512M
+max_execution_time=300
+post_max_size=32M
+upload_max_filesize=32M
+cgi.fix_pathinfo=0
+error_reporting=E_ALL & ~E_STRICT & ~E_NOTICE
+allow_url_fopen=On
+output_buffering=On
+always_populate_raw_post_data=-1

@@ -1,0 +1,4 @@
+/var/tmp/ccache/.*
+/var/tmp/portage/.*
+/tmp/.X11-unix
+/tmp/.ICE-unix

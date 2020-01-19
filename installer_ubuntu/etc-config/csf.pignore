@@ -1,0 +1,8 @@
+exe:/usr/sbin/sshd
+exe:/usr/sbin/nginx
+exe:/usr/sbin/mysqld
+exe:/usr/sbin/asterisk
+exe:/usr/bin/dirmngr
+exe:/usr/bin/gpg2
+exe:/usr/bin/gpg-agent
+exe:/usr/lib64/php5.6/bin/php-fpm
