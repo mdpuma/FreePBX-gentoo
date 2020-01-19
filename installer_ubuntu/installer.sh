@@ -29,7 +29,7 @@ function prestage() {
 	add-apt-repository ppa:ondrej/php < /dev/null
 	apt-get update && apt-get upgrade -y
 	
-	install_pkg vim net-tools openssh-server nginx mysql-server mysql-client \
+	install_pkg "vim curl wget net-tools openssh-server nginx mysql-server mysql-client \
 	curl sox mpg123 sqlite3 git uuid libodbc1 unixodbc unixodbc-bin \
 	asterisk asterisk-core-sounds-en-wav asterisk-core-sounds-en-g722 \
 	asterisk-dahdi asterisk-flite asterisk-modules asterisk-mp3 asterisk-mysql \
@@ -37,7 +37,7 @@ function prestage() {
 	asterisk-voicemail \
 	php5.6 php5.6-cgi php5.6-cli php5.6-curl php5.6-fpm php5.6-gd php5.6-mbstring \
 	php5.6-mysql php5.6-odbc php5.6-xml php5.6-bcmath php-pear libicu-dev gcc \
-	g++ make exim4
+	g++ make exim4"
   
 	curl -sL https://deb.nodesource.com/setup_10.x | bash -
 	install_pkg nodejs
@@ -293,5 +293,5 @@ do_preinstall_fixes
 do_install_freepbx
 configure_autostart
 do_postinstall
-postinstall_munin
 configure_firewall
+postinstall_munin
