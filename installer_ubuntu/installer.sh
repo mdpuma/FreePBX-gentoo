@@ -254,6 +254,11 @@ function do_postinstall() {
 	fwconsole ma downloadinstall calendar queues
 	fwconsole ma downloadinstall bulkhandler cel cidlookup asteriskinfo ringgroups timeconditions announcement 
 	fwconsole reload
+	
+	# copy moh sounds
+	cp -Rfp /usr/share/asterisk/moh/* /var/lib/asterisk/moh/
+	chown asterisk:asterisk /var/lib/asterisk/moh/ -Rf
+	
 	systemctl restart asterisk
 }
 
