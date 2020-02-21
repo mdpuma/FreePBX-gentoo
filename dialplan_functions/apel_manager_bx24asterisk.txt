@@ -1,0 +1,26 @@
+[selectare_manager_bitrix]
+exten => s,1,Set(CURLOPT(hashcompat)=yes)
+same => n,Set(CURLOPT(httptimeout)=5)
+same => n,Set(CURLOPT(conntimeout)=5)
+same => n,Set(HASH(forwardHash)=${CURL(http://localhost:8077/extendedForward?phone=${CALLERID(num)})})
+same => n,Set(CALLERID(name)=${HASH(forwardHash,name)})
+same => n,Set(FORWARD_NUMBER=${HASH(forwardHash,number)})
+same => n,Set(FORWARD_NUMBER=${REPLACE(FORWARD_NUMBER, ,)})
+same => n,GotoIf($[${FORWARD_NUMBER}]?apel_manager,${FORWARD_NUMBER},1)
+same => n,Noop(${FORWARD_NUMBER})
+same => n,Hangup()
+;same => n,Goto(ext-queues,10,1)
+
+[apel_manager]
+exten => _XXX,1,Noop(Incercare apelare operator ${EXTEN})
+same => n,Set(CDR(cnum)=${CALLERID(number)})
+same => n,Set(CDR(cnam)=${CALLERID(name)})
+; same => n,Gosub(sub-record-check,s,1(in,${EXTEN},force))
+same => n,Dial(SIP/${EXTEN},14,tm(default))
+same => n,Return()
+
+exten => _X.,1,Noop(unknown manager number)
+same => n,Return()
+
+exten => s,1,Noop(unknown manager number)
+same => n,Return() 

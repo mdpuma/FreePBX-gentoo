@@ -29,6 +29,8 @@ function prestage() {
 	add-apt-repository ppa:ondrej/php < /dev/null
 	apt-get update && apt-get upgrade -y
 	
+	mkdir /run/php -p 
+	
 	install_pkg "vim curl wget net-tools openssh-server nginx mysql-server mysql-client \
 	curl sox mpg123 sqlite3 git uuid libodbc1 unixodbc unixodbc-bin \
 	asterisk asterisk-core-sounds-en-wav asterisk-core-sounds-en-g722 \
