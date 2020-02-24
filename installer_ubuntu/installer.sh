@@ -111,6 +111,8 @@ function configure_mysql() {
 		systemctl restart mysql
 	fi
 	
+	wget --quiet $URL/etc-config/logrotate-mysql -O /etc/logrotate.d/mysql-server
+	
 #     MYCNF_FILE=/etc/mysql/mariadb.d/50-distro-server.cnf
 #     sed -iE 's/^\(log-bin\)/#\1/' $MYCNF_FILE
 #     sed -iE 's/^tmpdir.*/tmpdir = \/tmpfs/' $MYCNF_FILE
@@ -178,6 +180,7 @@ function do_preinstall_fixes() {
     
 #     # required by freepbx 14
 #     cp /etc/pam.d/sudo /etc/pam.d/runuser
+	wget --quiet $URL/etc-config/asterisk.conf -O /etc/asterisk/asterisk.conf
 }
 
 function do_install_unixodbc() {
