@@ -1,4 +1,4 @@
- 
+# 1st variant 
 [apel_spoof]
 exten => s,1,Noop(apel catre angajat de pe ${CALLERID(num)})
 same => n,Set(__INSERT_SPOOF_HEADER=1)
@@ -15,6 +15,7 @@ same => n,GotoIf($["${INSERT_SPOOF_HEADER}"!="1"]?label22)
 same => n,SIPAddHeader(X-Spoof-From:${SPOOF_FROM})
 same => n(label22),return()
 
+# 2nd variant
 
 [trunk_hook_out] 
 exten => s,1,Noop(insert X-Spoof-From)
@@ -27,3 +28,13 @@ same => n(label22),return()
 
 
 Dial trunk option : b(trunk_hook_out,s,1)
+
+
+# 3rd variant
+[cidlookup]
+exten => cidlookup_1,1,Gosub(apel_spoof,s,1)
+
+[apel_spoof]
+exten => s,1,Noop(apel catre angajat de pe ${CALLERID(num)})
+same => n,Set(HASH(__SIPHEADERS,X-Spoof-From)=${CALLERID(num)})
+same => n,Return()
