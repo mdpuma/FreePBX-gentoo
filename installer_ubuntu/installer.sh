@@ -264,6 +264,11 @@ function do_postinstall() {
 	cp -Rfp /usr/share/asterisk/moh/* /var/lib/asterisk/moh/
 	chown asterisk:asterisk /var/lib/asterisk/moh/ -Rf
 	
+	# fix sounds directory linking
+	cp -Rfp /var/lib/asterisk/sounds/* /usr/share/asterisk/sounds/
+	rm -Rf /var/lib/asterisk/sounds
+	ln -s /usr/share/asterisk/sounds /var/lib/asterisk/sounds
+	
 	systemctl restart asterisk
 }
 
