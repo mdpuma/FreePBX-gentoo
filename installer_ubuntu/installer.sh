@@ -39,7 +39,7 @@ function prestage() {
 	asterisk-voicemail \
 	php5.6 php5.6-cgi php5.6-cli php5.6-curl php5.6-fpm php5.6-gd php5.6-mbstring \
 	php5.6-mysql php5.6-odbc php5.6-xml php5.6-bcmath php-pear libicu-dev gcc \
-	g++ make exim4"
+	g++ make pkg-config exim4 sngrep"
   
 	curl -sL https://deb.nodesource.com/setup_10.x | bash -
 	install_pkg nodejs
@@ -93,6 +93,7 @@ function configure_phpfpm() {
     fi
     wget --quiet $URL/etc-config/php-fpm.conf -O $DIR/php-fpm.conf
     wget --quiet $URL/etc-config/php.ini.txt -O $DIR/php.ini
+    wget --quiet $URL/etc-config/php.ini.txt -O /etc/php/5.6/cli/php.ini
     systemctl restart php5.6-fpm
 }
 
