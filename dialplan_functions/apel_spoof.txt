@@ -31,6 +31,7 @@ Dial trunk option : b(trunk_hook_out,s,1)
 
 
 # 3rd variant
+# work with RingGroups, CallForward??
 [cidlookup]
 exten => cidlookup_1,1,Gosub(apel_spoof,s,1)
 

@@ -281,6 +281,7 @@ function configure_firewall() {
 	ufw prepend allow from 185.181.228.5
 	ufw prepend allow from 185.181.228.28
 	ufw prepend allow from 89.28.42.226
+	ufw prepend allow from 185.181.228.3
 	echo 'y' | ufw enable
 }
 
