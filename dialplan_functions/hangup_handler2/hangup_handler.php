@@ -13,11 +13,11 @@ exten => install,1,Set(CHANNEL(hangup_handler_wipe)=hangup-hook1,run,1)
 same => n,Return()
 exten => run,1,noop(hangup-hook1)
 same => n,GotoIf($["${QUEUENUM}"!="" && "${ABANDONED}"!="TRUE"]?label1)
-same => n,System(/var/lib/asterisk/bin/hangup_handler.php --action=notifynow --src="${CALLERID(num)}" --srcname="${CALLERID(name)}" --did="${CDR(dnid)}" --dst="${CDR(dstchannel)}" --disposition="${DIALSTATUS}")
+same => n,System(/var/lib/asterisk/bin/hangup_handler.php --action=notifynow --src="${CALLERID(num)}" --srcname="${CALLERID(name)}" --did="${CDR(did)}" --dst="${CDR(dstchannel)}" --disposition="${DIALSTATUS}")
 same => n(label1),Return()
 
 [send_message]
-exten => s,1,System(/var/lib/asterisk/bin/hangup_handler.php --action=send_message --department="" --message="Apel departament tehnic ${CALLERID(num)} (${CALLERID(name)}), numar intrare ${CDR(dnid)}")
+exten => s,1,System(/var/lib/asterisk/bin/hangup_handler.php --action=send_message --src="${CALLERID(num)}" --srcname="${CALLERID(name)}" --did="${CDR(did)}" --dst="${CDR(dstchannel)}" --disposition="${DIALSTATUS}" --department="")
 
 */
 
