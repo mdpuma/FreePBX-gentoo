@@ -1,0 +1,24 @@
+{
+  "name": "notifications_server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "@dschenkelman/netmask": "^1.0.8",
+    "@slack/client": "^5.0.2",
+    "@slack/events-api": "^2.3.4",
+    "fs": "^0.0.1-security",
+    "http": "0.0.0",
+    "js-yaml": "^3.14.0",
+    "log4js": "^4.5.1",
+    "telegraf": "^3.38.0",
+    "url": "^0.11.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

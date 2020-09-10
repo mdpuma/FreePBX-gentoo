@@ -17,12 +17,11 @@ same => n,Set(CDR(cnam)=${CALLERID(name)})
 same => n,Dial(SIP/${EXTEN},14,tm(default))
 same => n,Return()
 
-
 [apel_manager]
 exten => _XXX,1,Noop(Incercare apelare operator ${EXTEN})
-same => n,GotoIf($["${PJSIP_DIAL_CONTACTS(${EXTEN})}"=""]?label1)
 same => n,Set(CDR(cnum)=${CALLERID(number)})
 same => n,Set(CDR(cnam)=${CALLERID(name)})
-; same => n,Gosub(sub-record-check,s,1(in,${EXTEN},force))
-same => n,Dial(${PJSIP_DIAL_CONTACTS(${EXTEN})},14,tm(default))
+; same => n,Gosub(sub-record-check,s,1(in,${MANAGER_ID},force))
+same => n,GotoIf($["${PJSIP_DIAL_CONTACTS(${EXTEN})}"=""]?label1)
+same => n,Dial(${PJSIP_DIAL_CONTACTS(${EXTEN})},15,tm(default))
 same => n(label1),Return()
