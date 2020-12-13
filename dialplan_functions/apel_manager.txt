@@ -25,3 +25,17 @@ same => n,Set(CDR(cnam)=${CALLERID(name)})
 same => n,GotoIf($["${PJSIP_DIAL_CONTACTS(${EXTEN})}"=""]?label1)
 same => n,Dial(${PJSIP_DIAL_CONTACTS(${EXTEN})},15,tm(default))
 same => n(label1),Return()
+
+
+
+; anunt inainte de apel
+same => n,Dial(${PJSIP_DIAL_CONTACTS(${EXTEN})},15,tm(default)M(anunt^${CALLERID(dnid)}))
+same => n(label1),Return()
+
+[macro-anunt]
+exten => s,1,Wait(1)
+same => n,GotoIf($["${ARG1}"="22781919"]?turism:credit)
+exten => s,n(turism),Background(custom/turism,m,${CHANNEL(language)},macro-anunt)
+exten => s,n,MacroExit()
+exten => s,n(credit),Background(custom/credit,m,${CHANNEL(language)},macro-anunt)
+exten => s,n,MacroExit()
