@@ -25,6 +25,9 @@ function prestage() {
 	sed -ir 's/#?PermitRootLog.+/PermitRootLogin yes/' /etc/ssh/sshd_config
 	systemctl restart sshd
 	
+	systemctl disable apparmor
+	systemctl stop apparmor
+	
 	apt-get install -y software-properties-common
 	add-apt-repository ppa:ondrej/php < /dev/null
 	apt-get update && apt-get upgrade -y
@@ -32,11 +35,11 @@ function prestage() {
 	mkdir /run/php -p 
 	
 	# unixodbc-bin not exists on ubuntu 20.04
-	install_pkg "vim curl wget net-tools openssh-server nginx mysql-server mysql-client \
+	# asterisk-dahdi, asterisk-flite, asterisk-mp3 unecessary
+	install_pkg "vim curl wget net-tools openssh-server nginx mariadb-server mariadb-client \
 	curl sox mpg123 sqlite3 git uuid libodbc1 unixodbc \
-	asterisk asterisk-core-sounds-en-wav asterisk-core-sounds-en-g722 \
-	asterisk-dahdi asterisk-flite asterisk-modules asterisk-mp3 asterisk-mysql \
-	asterisk-moh-opsound-g722 asterisk-moh-opsound-wav asterisk-opus \
+	asterisk asterisk-core-sounds-en-wav asterisk-modules \
+	asterisk-mysql asterisk-moh-opsound-wav asterisk-opus \
 	asterisk-voicemail \
 	php5.6 php5.6-cgi php5.6-cli php5.6-curl php5.6-fpm php5.6-gd php5.6-mbstring \
 	php5.6-mysql php5.6-odbc php5.6-xml php5.6-bcmath php-pear libicu-dev gcc \
@@ -101,8 +104,9 @@ function configure_mysql() {
 	if [ $CLEAN_MYSQL -eq 1 ]; then
 		rm /root/.my.cnf
 		rm /var/lib/mysql/* -rf
-		mysqld --initialize-insecure
-		systemctl restart mysql
+# 		mysqld --initialize-insecure
+		mysql_install_db
+		systemctl restart mariadb
 	fi
 	
 	wget --quiet $URL/etc-config/logrotate-mysql -O /etc/logrotate.d/mysql-server
@@ -120,8 +124,7 @@ function configure_mysql() {
 password='$DBPASS'
 EOF
 	echo "USE mysql; UPDATE user SET plugin='mysql_native_password', authentication_string=PASSWORD('$DBPASS') WHERE user='root'; FLUSH PRIVILEGES" | mysql --skip-password
-	systemctl enable mysql
-	systemctl restart mysql
+	systemctl restart mariadb
 }
 
 # do_letsencrypt sip.domain.com
@@ -160,8 +163,8 @@ function configure_nginx2() {
 }
 
 function do_preinstall_fixes() {
-	rm -rf /etc/asterisk/ext* /etc/asterisk/sip* /etc/asterisk/pj* /etc/asterisk/iax* /etc/asterisk/manager*
-	sed -i 's/.!.//' /etc/asterisk/asterisk.conf
+# 	rm -rf /etc/asterisk/ext* /etc/asterisk/sip* /etc/asterisk/pj* /etc/asterisk/iax* /etc/asterisk/manager*
+# 	sed -i 's/.!.//' /etc/asterisk/asterisk.conf
 	
 	sed -i 's/ each(/ @each(/' /usr/share/php/Console/Getopt.php
 	
@@ -250,7 +253,7 @@ function do_postinstall() {
 		echo "noload = $i" >> /etc/asterisk/modules.conf
 	done
 	
-	fwconsole ma downloadinstall calendar queues
+	fwconsole ma downloadinstall calendar queues recordings
 	fwconsole ma downloadinstall bulkhandler cel cidlookup asteriskinfo ringgroups timeconditions announcement 
 	fwconsole reload
 	
