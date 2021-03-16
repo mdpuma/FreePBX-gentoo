@@ -43,7 +43,7 @@ $config = array(
     'managers_file' => '/var/lib/asterisk/bin/managers.csv',
     'notification_server_url' => 'http://sip.iphost.md:3001',
     'telegram' => array(
-        'default_destination' => ,
+        'default_destination' => '',
         'departments' => [
 // 			'tech' => '',
         ]
@@ -52,6 +52,12 @@ $config = array(
 		'default_destination' => '', // pentru departament vinzari
 		'departments' => [
 // 	             'tech' => '',
+		]
+	),
+	'teams' => array(
+		'default_destination' => '',
+		'departments' => [
+			'tech' => 'http://..'
 		]
 	),
     'debug' => 1,
@@ -118,11 +124,14 @@ switch($o['action']) {
 //		send_missed_call_email(get_email_destination($o['department']));
 		$hangup_handler->send_telegram_msg($o['department'], $hangup_handler->get_missedcall_template($o));
 // 		$hangup_handler->send_slack_msg($o['department'], $hangup_handler->get_missedcall_template($o));
+// 		$hangup_handler->send_mteams_message($o['department'], $o['src'], $o['srcname'], $o['did']);
 		break;
 	}
 	case 'send_message': {
-// 		$hangup_handler->send_slack_msg($o['department'], $o['message']);
+
 		$hangup_handler->send_telegram_msg($o['department'], "Intrare apel pe numarul ${o['did']} de la ${o['src']} (${o['srcname']})");
+// 		$hangup_handler->send_slack_msg($o['department'], $o['message']);
+// 		$hangup_handler->send_mteams_message($o['department'], $o['src'], $o['srcname'], $o['did'], $o['message']);
 		break;
 	}
 }

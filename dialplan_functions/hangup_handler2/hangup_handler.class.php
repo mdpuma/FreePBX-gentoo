@@ -5,6 +5,7 @@ require_once 'PHPMailer/class.smtp.php';
 
 class hangup_handler {
 	private $config = null;
+	private $default_teams_card = '{"summary":"Apel pierdut","themeColor":"0078D7","@type":"MessageCard","sections":[{"facts":[{"name":"Numar client:","value":"null"},{"name":"Nume client:","value":"null"},{"name":"Numar companie:","value":"022011011"},{"name":"Departament selectat:","value":"Oh yaya"}],"text":"Apel pierdut, trebuie retelefonat"}]}';
 	
 	function __construct($config) {
 		$this->config = $config;
@@ -118,6 +119,32 @@ class hangup_handler {
 		curl_setopt($ch, CURLOPT_URL, $this->config['notification_server_url'].'/slack_message'); 
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+
+		$result = curl_exec($ch); 
+		var_dump(curl_error($ch));
+		curl_close($ch); 
+	}
+	
+	public function send_mteams_message($department = 'neselectat', $number, $name, $did, $mesaj=null) {
+		$webhook_url = $this->get_destination('teams', $department);
+		
+		$txt = json_decode($this->default_teams_card);
+		$txt->sections[0]->facts[0]->value = $number;
+		$txt->sections[0]->facts[1]->value = $name;
+		$txt->sections[0]->facts[2]->value = $did;
+		$txt->sections[0]->facts[3]->value = $department;
+		if($mesaj !== null) {
+			$txt->summary = $mesaj;
+			$txt->sections[0]->text = $mesaj;
+		}
+		$json_encoded = json_encode($txt);
+		var_dump($json_encoded);
+		
+		$ch = curl_init(); 
+		curl_setopt($ch, CURLOPT_URL, $webhook_url); 
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $json_encoded);
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
 
 		$result = curl_exec($ch); 
