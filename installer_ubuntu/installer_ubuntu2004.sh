@@ -171,7 +171,7 @@ function do_preinstall_fixes() {
     
     #wget --quiet $URL/etc-config/logrotate-asterisk -O /etc/logrotate.d/asterisk
     rm /etc/freepbx.conf /etc/amportal.conf -v
-    rm /etc/asterisk/* -rfv
+#    rm /etc/asterisk/* -rfv
     rm /var/www/html/* -rf
     mysql -e 'drop database asterisk'
     
@@ -266,7 +266,17 @@ function do_postinstall() {
 	rm -Rf /var/lib/asterisk/sounds
 	ln -s /usr/share/asterisk/sounds /var/lib/asterisk/sounds
 	
+	# reinstall sounds
+	rm -Rf /var/lib/asterisk/sounds/* 
+	fwconsole sounds --uninstall=en
+	fwconsole sounds --install=en
+	
 	systemctl restart asterisk
+	
+	# enable log limiter journald
+    sed -e 's/#SystemMaxUse.*/SystemMaxUse=1G/' -i /etc/systemd/journald.conf
+    sed -e 's/#RuntimeMaxUse.*/RuntimeMaxUse=1G/' -i /etc/systemd/journald.conf
+    systemctl restart systemd-journald
 }
 
 function configure_firewall() {
