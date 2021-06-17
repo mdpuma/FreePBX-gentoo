@@ -2,7 +2,7 @@
 exten => s,1,Set(CURLOPT(hashcompat)=yes)
 same => n,Set(CURLOPT(httptimeout)=5)
 same => n,Set(CURLOPT(conntimeout)=5)
-same => n,Set(HASH(forwardHash)=${CURL(http://localhost:8077/extendedForward?phone=${CALLERID(num)})})
+same => n,Set(HASH(forwardHash)=${CURL(http://localhost:8077/forward?phone=${CALLERID(num)})})
 same => n,Set(CALLERID(name)=${HASH(forwardHash,name)})
 same => n,Set(FORWARD_NUMBER=${HASH(forwardHash,number)})
 same => n,Set(FORWARD_NUMBER=${REPLACE(FORWARD_NUMBER, ,)})
