@@ -1,34 +1,45 @@
 #!/usr/bin/env php
 <?php
-// Dial trunk options b(hangup-hook^install^1)
-//
-// Required dial plan contexts
-//
-// [hangup-hook]
-// exten => install,1,Set(CHANNEL(hangup_handler_wipe)=hangup-hook,run,1)
-// same => n,Return()
-// exten => run,1,System(/var/lib/asterisk/bin/apel_recent.php --action=store --src="${FROMEXTEN}" --dst="${CALLERID(num)}" --disposition="${CDR(disposition)}" 2>&1 | tee -a /tmp/asterisk.php.log)
-// same => n,Return()
-// 
-// [apel_recent]
-// exten => s,1,Noop(Verific apel recent)
-// same => n,Set(apel_recent=${SHELL(/var/lib/asterisk/bin/apel_recent.php --action=get --number="${CALLERID(num)}")})
-// same => n,GotoIf($["${apel_recent}"=""]?ext-group,10,1)
-// same => n,Gosub(apel_manager,${apel_recent},1)
+
+/*
+
+Asterisk Outbound Trunk Dial Options: TB(hangup-hook-out^install^1)
+Dial trunk options B(predial-hook^s^1)
+
+Required dial plan contexts
+
+ 
+[hangup-hook-out]
+exten => install,1,Set(CHANNEL(hangup_handler_wipe)=hangup-hook-out,run,1)
+same => n,Return()
+exten => run,1,System(/var/lib/asterisk/bin/apel_recent.php --action=store --src="${AMPUSER}" --dst="${CONNECTEDLINE(num)}" --disposition="STORE" 2>&1)
+same => n(label2),Return()
+
+[apel_recent]
+exten => s,1,Noop(Verific apel recent)
+same => n,Set(apel_recent=${SHELL(/var/lib/asterisk/bin/apel_recent.php --action=get --number="${CALLERID(num)}")})
+same => n,GotoIf($["${apel_recent}"=""]?label1)
+same => n,Gosub(apel_manager,${apel_recent},1)
+same => n(label1),Return()
+
+*/
 
 $o = getopt('', array(
     'action:',
+    'number:',
     'src:',
+    'srcname:',
+    'did:',
     'dst:',
     'disposition:',
-    'number:',
+    'context:'
 ));
 
 // How much time store recent calls
-$minutes_store = 120;
+$minutes_store = 300;
 $debug = 1;
 ini_set('date.timezone', 'Europe/Chisinau');
-ini_set('display_errors', 'On');
+ini_set('display_errors', 'Off');
 error_reporting(E_ALL && ~E_NOTICE);
 
 // +------------------------------+//

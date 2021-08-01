@@ -17,7 +17,10 @@ CLEAN_MYSQL=1
 DISABLE_CHANSIP=0
 
 # install munin
-USE_MUNIN=1
+USE_MUNIN=0
+
+# install node_exporter
+USE_NODE_EXPORTER=1
 
 INSTALL_ARGS='-y'
 
@@ -302,8 +305,44 @@ function install_pkg() {
 	fi
 }
 
+function install_node_exporter() {
+	URL=http://icinga.iphost.md/download/node_exporter-0.18.1.linux-amd64.tar.gz
+	wget -q -O /tmp/node_exporter-0.18.1.linux-amd64.tar.gz $URL
+	tar -x -C /tmp -f /tmp/node_exporter-0.18.1.linux-amd64.tar.gz
+	cp /tmp/node_exporter-0.18.1.linux-amd64/node_exporter /usr/bin/node_exporter
+	chmod +x /usr/bin/node_exporter
+	
+	useradd -s /bin/false prometheus
+cat << 'EOF' > /lib/systemd/system/node_exporter.service 
+[Unit]
+Description=Prometheus exporter for machine metrics
+Documentation=https://github.com/prometheus/node_exporter
+
+[Service]
+Restart=always
+User=prometheus
+EnvironmentFile=/etc/default/node_exporter
+ExecStart=/usr/bin/node_exporter $ARGS
+ExecReload=/bin/kill -HUP $MAINPID
+TimeoutStopSec=20s
+SendSIGKILL=no
+
+[Install]
+WantedBy=multi-user.target
+
+EOF
+
+cat << 'EOF' > /etc/default/node_exporter 
+ARGS="--no-collector.infiniband --no-collector.ipvs --no-collector.textfile --web.listen-address=:9100 --web.telemetry-path=/metrics --web.disable-exporter-metrics"
+
+EOF
+	systemctl enable node_exporter
+	systemctl start node_exporter
+}
+
+
 prestage
-[ $USE_MUNIN -ne 1 ] && install_munin
+[ $USE_MUNIN -eq 1 ] && install_munin
 configure_nginx $DOMAIN
 do_letsencrypt $DOMAIN $EMAIL
 configure_nginx2 $DOMAIN
@@ -317,4 +356,6 @@ do_install_freepbx
 configure_autostart
 do_postinstall
 configure_firewall
-[ $USE_MUNIN -ne 1 ] && postinstall_munin
+[ $USE_MUNIN -eq 1 ] && postinstall_munin
+
+[ $USE_NODE_EXPORTER -eq 1 ] && install_node_exporter

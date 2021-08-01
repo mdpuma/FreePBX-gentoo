@@ -15,8 +15,9 @@ same => n,GotoIf($["${INSERT_SPOOF_HEADER}"!="1"]?label22)
 same => n,SIPAddHeader(X-Spoof-From:${SPOOF_FROM})
 same => n(label22),return()
 
-# 2nd variant
 
+
+# 2nd variant
 [trunk_hook_out] 
 exten => s,1,Noop(insert X-Spoof-From)
 same => n,GotoIf($["${INSERT_SPOOF_HEADER}"!="1"]?label22)
@@ -26,12 +27,12 @@ same => n(label22),return()
 
 ; jump to apel_spoof,s,1 after from-trunk context
 
-
 Dial trunk option : b(trunk_hook_out,s,1)
 
 
-# 3rd variant
-# work with RingGroups, CallForward??
+
+# 3rd variant # best
+# work with PJSIP/SIP
 [cidlookup]
 exten => cidlookup_1,1,Gosub(apel_spoof,s,1)
 
