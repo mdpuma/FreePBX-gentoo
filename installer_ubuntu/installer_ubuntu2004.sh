@@ -338,6 +338,16 @@ ARGS="--no-collector.infiniband --no-collector.ipvs --no-collector.textfile --we
 EOF
 	systemctl enable node_exporter
 	systemctl start node_exporter
+	ufw allow from 185.181.228.2
+}
+
+function fix_sounds_dir_permissions() {
+	if [ -d /usr/share/asterisk/sounds ]; then 
+		rm /usr/share/asterisk/sounds
+		ln -s /var/lib/asterisk/sounds /usr/share/asterisk/sounds
+		chown asterisk:asterisk /usr/share/asterisk/sounds -h
+	fi
+	chown asterisk:asterisk /var/lib/asterisk/sounds -Rf
 }
 
 
@@ -359,3 +369,4 @@ configure_firewall
 [ $USE_MUNIN -eq 1 ] && postinstall_munin
 
 [ $USE_NODE_EXPORTER -eq 1 ] && install_node_exporter
+fix_sounds_dir_permissions
