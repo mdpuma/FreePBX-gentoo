@@ -5,7 +5,7 @@
 # Caution, this script will reinstall nginx, php-fpm, mariadb configuration and database
 #
 
-URL="https://raw.githubusercontent.com/mdpuma/FreePBX-gentoo/master/installer_ubuntu"
+URL="https://raw.githubusercontent.com/mdpuma/FreePBX-gentoo/master"
 DBPASS="$(openssl rand -base64 32 | md5sum |cut -d ' ' -f1)"
 DOMAIN='xxx'
 EMAIL='xx@xx.xx'
@@ -48,7 +48,7 @@ function prestage() {
 	php5.6-mysql php5.6-odbc php5.6-xml php5.6-bcmath php-pear libicu-dev gcc \
 	g++ make pkg-config exim4 sngrep"
   
-	curl -sL https://deb.nodesource.com/setup_10.x | bash -
+	curl -sL https://deb.nodesource.com/setup_14.x | bash -
 	install_pkg nodejs
 
 	chown asterisk. /var/run/asterisk
@@ -90,9 +90,9 @@ function configure_phpfpm() {
         echo "configure_phpfpm() php-fpm5.6 doesn't exists, check directory $DIR"
         exit 1
     fi
-    wget --quiet $URL/etc-config/php-fpm.conf -O $DIR/php-fpm.conf
-    wget --quiet $URL/etc-config/php.ini.txt -O $DIR/php.ini
-    wget --quiet $URL/etc-config/php.ini.txt -O /etc/php/5.6/cli/php.ini
+    wget --quiet $URL/installer_ubuntu/etc-config/php-fpm.conf -O $DIR/php-fpm.conf
+    wget --quiet $URL/installer_ubuntu/etc-config/php.ini.txt -O $DIR/php.ini
+    wget --quiet $URL/installer_ubuntu/etc-config/php.ini.txt -O /etc/php/5.6/cli/php.ini
     systemctl restart php5.6-fpm
 }
 
@@ -112,7 +112,7 @@ function configure_mysql() {
 		systemctl restart mariadb
 	fi
 	
-	wget --quiet $URL/etc-config/logrotate-mysql -O /etc/logrotate.d/mysql-server
+	wget --quiet $URL/installer_ubuntu/etc-config/logrotate-mysql -O /etc/logrotate.d/mysql-server
 	
 #     MYCNF_FILE=/etc/mysql/mariadb.d/50-distro-server.cnf
 #     sed -iE 's/^\(log-bin\)/#\1/' $MYCNF_FILE
@@ -144,6 +144,7 @@ function do_letsencrypt() {
 		cat << EOF >> /var/spool/cron/crontabs/root
 MAILTO="$EMAIL"
 0 0 1,15 * *  /usr/bin/certbot renew && /etc/init.d/nginx reload
+0 * * * *     /root/fix_odbc_0_conn.sh >/dev/null 2>&1
 EOF
 	fi
 }
@@ -151,15 +152,15 @@ EOF
 # configure_nginx (pre letsencrypt)
 function configure_nginx() {
     mkdir /etc/nginx/conf.d -p
-    wget --quiet $URL/etc-config/nginx.conf -O /etc/nginx/nginx.conf
-    wget --quiet $URL/etc-config/nginx-certbot.conf -O /etc/nginx/conf.d/freepbx.conf
+    wget --quiet $URL/installer_ubuntu/etc-config/nginx.conf -O /etc/nginx/nginx.conf
+    wget --quiet $URL/installer_ubuntu/etc-config/nginx-certbot.conf -O /etc/nginx/conf.d/freepbx.conf
     sed -iE "s/{{domain}}/$1/g" /etc/nginx/conf.d/freepbx.conf
     systemctl restart nginx
 }
 
 # configure_nginx (post letsencrypt)
 function configure_nginx2() {
-    wget --quiet $URL/etc-config/nginx-freepbx.conf -O /etc/nginx/conf.d/freepbx.conf
+    wget --quiet $URL/installer_ubuntu/etc-config/nginx-freepbx.conf -O /etc/nginx/conf.d/freepbx.conf
     [ ! -f /etc/nginx/dhparam.pem ] && openssl dhparam -out /etc/nginx/dhparam.pem 2048
     sed -iE "s/{{domain}}/$1/g" /etc/nginx/conf.d/freepbx.conf
     systemctl restart nginx
@@ -172,7 +173,7 @@ function do_preinstall_fixes() {
 	sed -i 's/ each(/ @each(/' /usr/share/php/Console/Getopt.php
 	
     
-    #wget --quiet $URL/etc-config/logrotate-asterisk -O /etc/logrotate.d/asterisk
+    #wget --quiet $URL/installer_ubuntu/etc-config/logrotate-asterisk -O /etc/logrotate.d/asterisk
     rm /etc/freepbx.conf /etc/amportal.conf -v
 #    rm /etc/asterisk/* -rfv
     rm /var/www/html/* -rf
@@ -180,7 +181,7 @@ function do_preinstall_fixes() {
     
 #     # required by freepbx 14
 #     cp /etc/pam.d/sudo /etc/pam.d/runuser
-	wget --quiet $URL/etc-config/asterisk.conf -O /etc/asterisk/asterisk.conf
+	wget --quiet $URL/installer_ubuntu/etc-config/asterisk.conf -O /etc/asterisk/asterisk.conf
 }
 
 function do_install_unixodbc() {
@@ -220,7 +221,7 @@ function do_install_freepbx() {
 }
 
 function configure_exim() {
-	wget --quiet $URL/etc-config/update-exim4.conf.conf -O /etc/exim4/update-exim4.conf.conf
+	wget --quiet $URL/installer_ubuntu/etc-config/update-exim4.conf.conf -O /etc/exim4/update-exim4.conf.conf
 	echo $DOMAIN > /etc/mailname
 	sed -iE "s/{{ domain }}/$DOMAIN/g" /etc/exim4/update-exim4.conf.conf
 	
@@ -275,6 +276,10 @@ function do_postinstall() {
 	fwconsole sounds --install=en
 	
 	systemctl restart asterisk
+	
+	# fix odbc conn 0
+	wget --quiet $URL/installer_ubuntu/scripts/fix_odbc_0_conn.sh -O /root/fix_odbc_0_conn.sh
+	chmod +x /root/fix_odbc_0_conn.sh
 	
 	# enable log limiter journald
     sed -e 's/#SystemMaxUse.*/SystemMaxUse=1G/' -i /etc/systemd/journald.conf
