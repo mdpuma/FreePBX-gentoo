@@ -1,0 +1,5 @@
+[from_mediasat]
+exten => 0318270100,1,Noop()
+same => n,GotoIf($["${LEN(${CALLERID(num)})}"!="10"]?label1)
+same => n,Set(CALLERID(num)=004${CALLERID(num)})
+same => n(label1),Goto(from-trunk,${EXTEN},1)
