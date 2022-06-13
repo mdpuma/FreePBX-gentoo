@@ -1,0 +1,5 @@
+[from_goip]
+exten => _X.,1,Noop()
+same => n,GotoIf($["${LEN(${CALLERID(num)})}"!="9"]?label1)
+same => n,Set(CALLERID(num)=+373${CALLERID(num):1})
+same => n(label1),Goto(from-trunk,${EXTEN},1)
