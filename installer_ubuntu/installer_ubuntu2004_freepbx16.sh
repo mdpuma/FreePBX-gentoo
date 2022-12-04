@@ -5,10 +5,10 @@
 # Caution, this script will reinstall nginx, php-fpm, mariadb configuration and database
 #
 
-URL="https://raw.githubusercontent.com/mdpuma/FreePBX-gentoo/master/installer_ubuntu"
+URL="https://raw.githubusercontent.com/mdpuma/FreePBX-gentoo/master"
 DBPASS="$(openssl rand -base64 32 | md5sum |cut -d ' ' -f1)"
 DOMAIN='xxx'
-EMAIL='xx@xx.xx'
+EMAIL='xxx@xxx'
 
 # clean mysql config
 CLEAN_MYSQL=1
@@ -17,13 +17,19 @@ CLEAN_MYSQL=1
 DISABLE_CHANSIP=0
 
 # install munin
-USE_MUNIN=1
+USE_MUNIN=0
+
+# install node_exporter
+USE_NODE_EXPORTER=1
 
 INSTALL_ARGS='-y'
 
 function prestage() {
 	sed -ir 's/#?PermitRootLog.+/PermitRootLogin yes/' /etc/ssh/sshd_config
 	systemctl restart sshd
+	
+	systemctl disable apparmor
+	systemctl stop apparmor
 	
 	apt-get install -y software-properties-common
 	add-apt-repository ppa:ondrej/php < /dev/null
@@ -32,17 +38,17 @@ function prestage() {
 	mkdir /run/php -p 
 	
 	# unixodbc-bin not exists on ubuntu 20.04
-	install_pkg "vim curl wget net-tools openssh-server nginx mysql-server mysql-client \
+	# asterisk-dahdi, asterisk-flite, asterisk-mp3 unecessary
+	install_pkg "vim curl wget net-tools openssh-server nginx mariadb-server mariadb-client \
 	curl sox mpg123 sqlite3 git uuid libodbc1 unixodbc \
-	asterisk asterisk-core-sounds-en-wav asterisk-core-sounds-en-g722 \
-	asterisk-dahdi asterisk-flite asterisk-modules asterisk-mp3 asterisk-mysql \
-	asterisk-moh-opsound-g722 asterisk-moh-opsound-wav asterisk-opus \
+	asterisk asterisk-core-sounds-en-wav asterisk-modules \
+	asterisk-mysql asterisk-moh-opsound-wav asterisk-opus \
 	asterisk-voicemail \
-	php5.6 php5.6-cgi php5.6-cli php5.6-curl php5.6-fpm php5.6-gd php5.6-mbstring \
-	php5.6-mysql php5.6-odbc php5.6-xml php5.6-bcmath php-pear libicu-dev gcc \
+	php7.4 php7.4-cgi php7.4-cli php7.4-curl php7.4-fpm php7.4-gd php7.4-mbstring \
+	php7.4-mysql php7.4-odbc php7.4-xml php7.4-bcmath php-pear libicu-dev gcc \
 	g++ make pkg-config exim4 sngrep"
   
-	curl -sL https://deb.nodesource.com/setup_10.x | bash -
+	curl -sL https://deb.nodesource.com/setup_18.x | bash -
 	install_pkg nodejs
 
 	chown asterisk. /var/run/asterisk
@@ -79,33 +85,34 @@ EOF
 }
 
 function configure_phpfpm() {
-	DIR=/etc/php/5.6/fpm
+	DIR=/etc/php/7.4
     if [ ! -d $DIR ]; then
-        echo "configure_phpfpm() php-fpm5.6 doesn't exists, check directory $DIR"
+        echo "configure_phpfpm() directory $DIR doesn't exists!"
         exit 1
     fi
-    wget --quiet $URL/etc-config/php-fpm.conf -O $DIR/php-fpm.conf
-    wget --quiet $URL/etc-config/php.ini.txt -O $DIR/php.ini
-    wget --quiet $URL/etc-config/php.ini.txt -O /etc/php/5.6/cli/php.ini
-    systemctl restart php5.6-fpm
+    wget --quiet $URL/installer_ubuntu/etc-config/php-fpm.conf -O $DIR/fpm/php-fpm.conf
+    wget --quiet $URL/installer_ubuntu/etc-config/php.ini.txt -O $DIR/fpm/php.ini
+    wget --quiet $URL/installer_ubuntu/etc-config/php.ini.txt -O $DIR/cli/php.ini
+    systemctl restart php7.4-fpm
 }
 
 function configure_autostart() {
 	systemctl enable nginx
 	systemctl enable mariadb
 	systemctl enable asterisk
-	systemctl enable php5.6-fpm
+	systemctl enable php7.4-fpm
 }
 
 function configure_mysql() {
 	if [ $CLEAN_MYSQL -eq 1 ]; then
 		rm /root/.my.cnf
 		rm /var/lib/mysql/* -rf
-		mysqld --initialize-insecure
-		systemctl restart mysql
+# 		mysqld --initialize-insecure
+		mysql_install_db
+		systemctl restart mariadb
 	fi
 	
-	wget --quiet $URL/etc-config/logrotate-mysql -O /etc/logrotate.d/mysql-server
+	wget --quiet $URL/installer_ubuntu/etc-config/logrotate-mysql -O /etc/logrotate.d/mysql-server
 	
 #     MYCNF_FILE=/etc/mysql/mariadb.d/50-distro-server.cnf
 #     sed -iE 's/^\(log-bin\)/#\1/' $MYCNF_FILE
@@ -120,8 +127,7 @@ function configure_mysql() {
 password='$DBPASS'
 EOF
 	echo "USE mysql; UPDATE user SET plugin='mysql_native_password', authentication_string=PASSWORD('$DBPASS') WHERE user='root'; FLUSH PRIVILEGES" | mysql --skip-password
-	systemctl enable mysql
-	systemctl restart mysql
+	systemctl restart mariadb
 }
 
 # do_letsencrypt sip.domain.com
@@ -138,6 +144,7 @@ function do_letsencrypt() {
 		cat << EOF >> /var/spool/cron/crontabs/root
 MAILTO="$EMAIL"
 0 0 1,15 * *  /usr/bin/certbot renew && /etc/init.d/nginx reload
+0 * * * *     /root/fix_odbc_0_conn.sh >/dev/null 2>&1
 EOF
 	fi
 }
@@ -145,36 +152,36 @@ EOF
 # configure_nginx (pre letsencrypt)
 function configure_nginx() {
     mkdir /etc/nginx/conf.d -p
-    wget --quiet $URL/etc-config/nginx.conf -O /etc/nginx/nginx.conf
-    wget --quiet $URL/etc-config/nginx-certbot.conf -O /etc/nginx/conf.d/freepbx.conf
+    wget --quiet $URL/installer_ubuntu/etc-config/nginx.conf -O /etc/nginx/nginx.conf
+    wget --quiet $URL/installer_ubuntu/etc-config/nginx-certbot.conf -O /etc/nginx/conf.d/freepbx.conf
     sed -iE "s/{{domain}}/$1/g" /etc/nginx/conf.d/freepbx.conf
     systemctl restart nginx
 }
 
 # configure_nginx (post letsencrypt)
 function configure_nginx2() {
-    wget --quiet $URL/etc-config/nginx-freepbx.conf -O /etc/nginx/conf.d/freepbx.conf
+    wget --quiet $URL/installer_ubuntu/etc-config/nginx-freepbx.conf -O /etc/nginx/conf.d/freepbx.conf
     [ ! -f /etc/nginx/dhparam.pem ] && openssl dhparam -out /etc/nginx/dhparam.pem 2048
     sed -iE "s/{{domain}}/$1/g" /etc/nginx/conf.d/freepbx.conf
     systemctl restart nginx
 }
 
 function do_preinstall_fixes() {
-	rm -rf /etc/asterisk/ext* /etc/asterisk/sip* /etc/asterisk/pj* /etc/asterisk/iax* /etc/asterisk/manager*
-	sed -i 's/.!.//' /etc/asterisk/asterisk.conf
+# 	rm -rf /etc/asterisk/ext* /etc/asterisk/sip* /etc/asterisk/pj* /etc/asterisk/iax* /etc/asterisk/manager*
+# 	sed -i 's/.!.//' /etc/asterisk/asterisk.conf
 	
 	sed -i 's/ each(/ @each(/' /usr/share/php/Console/Getopt.php
 	
     
-    #wget --quiet $URL/etc-config/logrotate-asterisk -O /etc/logrotate.d/asterisk
+    #wget --quiet $URL/installer_ubuntu/etc-config/logrotate-asterisk -O /etc/logrotate.d/asterisk
     rm /etc/freepbx.conf /etc/amportal.conf -v
-    rm /etc/asterisk/* -rfv
+#    rm /etc/asterisk/* -rfv
     rm /var/www/html/* -rf
     mysql -e 'drop database asterisk'
     
 #     # required by freepbx 14
 #     cp /etc/pam.d/sudo /etc/pam.d/runuser
-	wget --quiet $URL/etc-config/asterisk.conf -O /etc/asterisk/asterisk.conf
+	wget --quiet $URL/installer_ubuntu/etc-config/asterisk.conf -O /etc/asterisk/asterisk.conf
 }
 
 function do_install_unixodbc() {
@@ -204,8 +211,8 @@ EOF
 
 function do_install_freepbx() {
     cd /var/www
-    [ ! -f "freepbx-14.0-latest.tgz" ] && wget --quiet http://mirror.freepbx.org/modules/packages/freepbx/freepbx-14.0-latest.tgz -O freepbx-14.0-latest.tgz
-    tar xf freepbx-14.0-latest.tgz
+    [ ! -f "freepbx-16.0-latest.tgz" ] && wget --quiet http://mirror.freepbx.org/modules/packages/freepbx/7.4/freepbx-16.0-latest.tgz -O freepbx-16.0-latest.tgz
+    tar xf freepbx-16.0-latest.tgz
     cd /var/www/freepbx
     systemctl restart asterisk
     ./install --dbpass=$DBPASS --no-interaction
@@ -214,7 +221,7 @@ function do_install_freepbx() {
 }
 
 function configure_exim() {
-	wget --quiet $URL/etc-config/update-exim4.conf.conf -O /etc/exim4/update-exim4.conf.conf
+	wget --quiet $URL/installer_ubuntu/etc-config/update-exim4.conf.conf -O /etc/exim4/update-exim4.conf.conf
 	echo $DOMAIN > /etc/mailname
 	sed -iE "s/{{ domain }}/$DOMAIN/g" /etc/exim4/update-exim4.conf.conf
 	
@@ -250,7 +257,7 @@ function do_postinstall() {
 		echo "noload = $i" >> /etc/asterisk/modules.conf
 	done
 	
-	fwconsole ma downloadinstall calendar queues
+	fwconsole ma downloadinstall calendar queues recordings
 	fwconsole ma downloadinstall bulkhandler cel cidlookup asteriskinfo ringgroups timeconditions announcement 
 	fwconsole reload
 	
@@ -263,7 +270,21 @@ function do_postinstall() {
 	rm -Rf /var/lib/asterisk/sounds
 	ln -s /usr/share/asterisk/sounds /var/lib/asterisk/sounds
 	
+	# reinstall sounds
+	rm -Rf /var/lib/asterisk/sounds/* 
+	fwconsole sounds --uninstall=en
+	fwconsole sounds --install=en
+	
 	systemctl restart asterisk
+	
+	# fix odbc conn 0
+	wget --quiet $URL/installer_ubuntu/scripts/fix_odbc_0_conn.sh -O /root/fix_odbc_0_conn.sh
+	chmod +x /root/fix_odbc_0_conn.sh
+	
+	# enable log limiter journald
+    sed -e 's/#SystemMaxUse.*/SystemMaxUse=1G/' -i /etc/systemd/journald.conf
+    sed -e 's/#RuntimeMaxUse.*/RuntimeMaxUse=1G/' -i /etc/systemd/journald.conf
+    systemctl restart systemd-journald
 }
 
 function configure_firewall() {
@@ -273,7 +294,7 @@ function configure_firewall() {
 	ufw allow 443/tcp
 	ufw prepend allow from 185.181.228.5
 	ufw prepend allow from 185.181.228.28
-	ufw prepend allow from 89.28.42.226
+	ufw prepend allow from 188.138.163.60
 	ufw prepend allow from 185.181.228.3
 	echo 'y' | ufw enable
 }
@@ -289,8 +310,50 @@ function install_pkg() {
 	fi
 }
 
+function install_node_exporter() {
+	URL=http://icinga.iphost.md/download/node_exporter-0.18.1.linux-amd64.tar.gz
+	wget -q -O /tmp/node_exporter-0.18.1.linux-amd64.tar.gz $URL
+	tar -x -C /tmp -f /tmp/node_exporter-0.18.1.linux-amd64.tar.gz
+	cp /tmp/node_exporter-0.18.1.linux-amd64/node_exporter /usr/bin/node_exporter
+	chmod +x /usr/bin/node_exporter
+	
+	useradd -s /bin/false prometheus
+cat << 'EOF' > /lib/systemd/system/node_exporter.service 
+[Unit]
+Description=Prometheus exporter for machine metrics
+Documentation=https://github.com/prometheus/node_exporter
+
+[Service]
+Restart=always
+User=prometheus
+EnvironmentFile=/etc/default/node_exporter
+ExecStart=/usr/bin/node_exporter $ARGS
+ExecReload=/bin/kill -HUP $MAINPID
+TimeoutStopSec=20s
+SendSIGKILL=no
+
+[Install]
+WantedBy=multi-user.target
+
+EOF
+
+cat << 'EOF' > /etc/default/node_exporter 
+ARGS="--no-collector.infiniband --no-collector.ipvs --no-collector.textfile --web.listen-address=:9100 --web.telemetry-path=/metrics --web.disable-exporter-metrics"
+
+EOF
+	systemctl enable node_exporter
+	systemctl start node_exporter
+	ufw allow from 185.181.228.2
+}
+
+function fix_sounds_dir_permissions() {
+	chown asterisk:asterisk /var/lib/asterisk/sounds -Rf
+	chown asterisk:asterisk /var/lib/asterisk/sounds/ -Rf
+}
+
+
 prestage
-[ $USE_MUNIN -ne 1 ] && install_munin
+[ $USE_MUNIN -eq 1 ] && install_munin
 configure_nginx $DOMAIN
 do_letsencrypt $DOMAIN $EMAIL
 configure_nginx2 $DOMAIN
@@ -304,4 +367,7 @@ do_install_freepbx
 configure_autostart
 do_postinstall
 configure_firewall
-[ $USE_MUNIN -ne 1 ] && postinstall_munin
+[ $USE_MUNIN -eq 1 ] && postinstall_munin
+
+[ $USE_NODE_EXPORTER -eq 1 ] && install_node_exporter
+fix_sounds_dir_permissions
