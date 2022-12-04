@@ -266,14 +266,15 @@ function do_postinstall() {
 	chown asterisk:asterisk /var/lib/asterisk/moh/ -Rf
 	
 	# fix sounds directory linking
-	cp -Rfp /var/lib/asterisk/sounds/* /usr/share/asterisk/sounds/
-	rm -Rf /var/lib/asterisk/sounds
+    rm -Rf /usr/share/asterisk/sounds /var/lib/asterisk/sounds
+    mkdir /usr/share/asterisk/sounds
 	ln -s /usr/share/asterisk/sounds /var/lib/asterisk/sounds
 	
 	# reinstall sounds
-	rm -Rf /var/lib/asterisk/sounds/* 
 	fwconsole sounds --uninstall=en
 	fwconsole sounds --install=en
+    chown -Rf asterisk:asterisk /usr/share/asterisk/sounds
+    chown -h asterisk:asterisk /var/lib/asterisk/sounds
 	
 	systemctl restart asterisk
 	

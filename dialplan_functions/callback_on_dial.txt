@@ -1,0 +1,22 @@
+[cidlookup]
+same => n,Gosub(hangup-hook1,install,1)
+same => n,Return()
+
+; functional for ring group & queue
+[hangup-hook1]
+exten => install,1,Set(CHANNEL(hangup_handler_wipe)=hangup-hook1,run,1)
+same => n,System(wget -O - -T 5 --quiet "https://sip.loc/asterisk/call/start?uniqueid=${CDR(uniqueid)}&calldate=${CDR(start,u)}&call_type=incoming&did=${CDR(did)}&callerid=${CALLERID(num)}&source=sip.loc")
+same => n,Return()
+exten => run,1,noop(hangup-hook1)
+same => n,System(wget -O - -T 5 --quiet "https://sip.loc/asterisk/call/finish?uniqueid=${CDR(uniqueid)}&call_status=${URIENCODE(${disposition})}&recordingfile=${URIENCODE(${CDR(recordingfile)})}&source=sip.loc&duration=${CDR(billsec)}&ID_operator=${CONNECTEDLINE(num)}")
+same => n,Return()
+
+[dialout-hook]
+exten => install,1,noop(dialout-hook - install)
+same => n,Set(CHANNEL(hangup_handler_wipe)=dialout-hook,run,1)
+same => n,System(wget -O - -T 5 --quiet "https://sip.loc/asterisk/call/start?uniqueid=${CDR(uniqueid)}&calldate=${CDR(start,u)}&call_type=outgoing&callerid=${MACRO_EXTEN}&id_operator=${CDR(cnum)}&source=sip.loc")
+same => n,Noop(macro_exten=${MACRO_EXTEN})
+same => n,Return()
+
+exten => run,1,System(wget -O - -T 5 --quiet "https://sip.loc/asterisk/call/finish?uniqueid=${CDR(uniqueid)}&call_status=${URIENCODE(${CDR(disposition)})}&recordingfile=${URIENCODE(${CDR(recordingfile)})}&source=sip3060.iphost.md&duration=${CDR(billsec)}&ID_operator=${CALLERIDNUMINTERNAL}")
+same => n,Return()
