@@ -7,16 +7,12 @@ const Netmask = require('@dschenkelman/netmask').Netmask;
 
 const { WebClient } = require('@slack/client');
 const { createEventAdapter } = require('@slack/events-api');
-
-const Telegraf = require('telegraf');
-const Telegram = require('telegraf/telegram');
-
+const { Telegraf } = require('telegraf')
 
 /* Common settings */
-
 var logger = log4js.getLogger();
 
-logger.level = 'info';
+logger.level = 'debug';
 
 const api_bindhost = "0.0.0.0";
 const api_bindport = 3001;
@@ -29,12 +25,14 @@ const allowed_subnets = [
 	'89.28.42.226',
 	'127.0.0.1'
 ];
+var allowed_subnets_object = [];
 
 /* 
  * Slack configuration 
  */
 
 // An access token (from your Slack app or custom integration - xoxa, xoxp, or xoxb)
+// const token = 'xoxp-519627151600-521050170608-546628346947-ae0611e158d7f58431ea230c78d541d0';
 const token = '';
 
 // Initialize using signing secret from environment variables
@@ -75,26 +73,22 @@ slackEvents.start(port).then(() => {
  * telegram code part 
  */
 
-if(telegram_token !== '') {
-	const bot = new Telegraf(telegram_token);
-	const telegram = new Telegram(telegram_token);
+const bot = new Telegraf(telegram_token);
+// const telegram = new Telegram(telegram_token);
 
-	bot.on('message', (ctx) => {
-		var msg = ctx.update.message;
-		logger.info('[telegram] Received a message event: user '+msg.from.username+' in group '+msg.chat.title+' ('+msg.chat.id+') says '+msg.text);
-		if(ctx.update.message.text == "/myid") {
-			ctx.reply('chat id is '+ctx.update.message.chat.id);
-		}
-	});
-	bot.startPolling()
-} else {
-	logger.error("Telegram token is not configured");
-}
+bot.on('message', (ctx) => {
+	var msg = ctx.update.message;
+	logger.info('[telegram] Received a message event: user '+msg.from.username+' in group '+msg.chat.title+' ('+msg.chat.id+') says '+msg.text);
+	if(ctx.update.message.text == "/myid") {
+		ctx.reply('chat id is '+ctx.update.message.chat.id);
+	}
+});
+bot.startPolling()
+
 
 /* 
  * common code part 
  */
-var allowed_subnets_object = [];
 
 for(var i=0; i < allowed_subnets.length; i++) {
 	allowed_subnets_object[i] = new Netmask(allowed_subnets[i]);
@@ -160,7 +154,7 @@ const api_server = http.createServer((req, res) => {
 					logger.debug('Message sent: ', res2.ts);
 					res.end(yaml.safeDump(res2));
 				}).catch((err) => {
-					logger.error(err);
+					logger.debug(err);
 					res.end(yaml.safeDump({'error':'please check logs'}));
 				});
 				break;
@@ -172,18 +166,12 @@ const api_server = http.createServer((req, res) => {
 					}
 				} catch(err) {
 					var message = yaml.safeDump({'error':'missing message or chat_id'});
-					logger.error(message);
+					logger.debug(message);
 					res.end(message);
 					return;
 				}
 				
-				if(telegram_token == '') {
-					logger.error("Telegram token is not configured");
-					res.end();
-					break;
-				}
-				
-				telegram.sendMessage(body_req.chat_id, body_req.message);
+				bot.telegram.sendMessage(body_req.chat_id, body_req.message);
 				res.end();
 				break;
 			}
