@@ -270,6 +270,9 @@ function do_postinstall() {
 	rm -Rf /var/lib/asterisk/sounds
 	ln -s /usr/share/asterisk/sounds /var/lib/asterisk/sounds
 	
+	# fix soundLang module
+	sed -i '/Uninstalling %s/s/sprintf(_/_(sprintf/' /var/www/html/admin/modules/soundlang/Console/Soundlang.class.php
+	
 	# reinstall sounds
 	rm -Rf /var/lib/asterisk/sounds/* 
 	fwconsole sounds --uninstall=en
@@ -285,6 +288,12 @@ function do_postinstall() {
     sed -e 's/#SystemMaxUse.*/SystemMaxUse=1G/' -i /etc/systemd/journald.conf
     sed -e 's/#RuntimeMaxUse.*/RuntimeMaxUse=1G/' -i /etc/systemd/journald.conf
     systemctl restart systemd-journald
+    
+    # disable ipv6
+    cat >> /etc/sysctl.conf << EOF
+net.ipv6.conf.all.disable_ipv6 = 1
+EOF
+    sysctl -p
 }
 
 function configure_firewall() {
@@ -311,10 +320,10 @@ function install_pkg() {
 }
 
 function install_node_exporter() {
-	URL=http://icinga.iphost.md/download/node_exporter-0.18.1.linux-amd64.tar.gz
-	wget -q -O /tmp/node_exporter-0.18.1.linux-amd64.tar.gz $URL
-	tar -x -C /tmp -f /tmp/node_exporter-0.18.1.linux-amd64.tar.gz
-	cp /tmp/node_exporter-0.18.1.linux-amd64/node_exporter /usr/bin/node_exporter
+	URL=http://icinga.iphost.md/download/node_exporter-1.5.0.linux-amd64.tar.gz
+	wget -q -O /tmp/node_exporter-1.5.0.linux-amd64.tar.gz $URL
+	tar -x -C /tmp -f /tmp/node_exporter-1.5.0.linux-amd64.tar.gz
+	cp /tmp/node_exporter-1.5.0.linux-amd64/node_exporter /usr/bin/node_exporter
 	chmod +x /usr/bin/node_exporter
 	
 	useradd -s /bin/false prometheus
