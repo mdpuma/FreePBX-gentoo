@@ -141,7 +141,8 @@ class hangup_handler {
 		$json_encoded = json_encode($txt);
 		var_dump($json_encoded);
 		
-		$ch = curl_init(); 
+		$ch = curl_init();
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json"));
 		curl_setopt($ch, CURLOPT_URL, $webhook_url); 
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $json_encoded);
