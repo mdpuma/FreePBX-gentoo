@@ -48,8 +48,14 @@ function prestage() {
 	php7.4-mysql php7.4-odbc php7.4-xml php7.4-bcmath php-pear libicu-dev gcc \
 	g++ make pkg-config exim4 sngrep"
   
-	curl -sL https://deb.nodesource.com/setup_18.x | bash -
-	install_pkg nodejs
+	sudo apt-get install -y ca-certificates gnupg
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+    
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+    
+    apt-get update 
+    apt-get install nodejs -y
 
 	chown asterisk. /var/run/asterisk
 	chown -R asterisk. /etc/asterisk
