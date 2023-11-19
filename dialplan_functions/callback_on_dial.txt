@@ -1,3 +1,8 @@
+dial out trunk options to add via Freepbx-> Advanced 
+
+B(dialout-hook^install^1)
+
+
 [cidlookup]
 same => n,Gosub(hangup-hook1,install,1)
 same => n,Return()
