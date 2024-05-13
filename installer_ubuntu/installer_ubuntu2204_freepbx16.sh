@@ -152,7 +152,9 @@ MAILTO="$EMAIL"
 0 0 1,15 * *  /usr/bin/certbot renew && /etc/init.d/nginx reload
 0 * * * *     /root/fix_odbc_0_conn.sh >/dev/null 2>&1
 EOF
+
 	fi
+    chmod 600 /var/spool/cron/crontabs/root
 }
 
 # configure_nginx (pre letsencrypt)
