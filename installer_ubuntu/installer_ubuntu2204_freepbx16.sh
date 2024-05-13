@@ -114,6 +114,7 @@ function configure_mysql() {
 		rm /var/lib/mysql/* -rf
 # 		mysqld --initialize-insecure
 		mysql_install_db
+		chown mysql:mysql /var/lib/mysql/ -Rf
 		systemctl restart mariadb
 	fi
 	
