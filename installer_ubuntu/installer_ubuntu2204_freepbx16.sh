@@ -302,6 +302,20 @@ function do_postinstall() {
 net.ipv6.conf.all.disable_ipv6 = 1
 EOF
     sysctl -p
+    
+    # add freepbx pm2 start on boot
+    touch /etc/rc.local
+    chmod +x /etc/rc.local
+    cat >> /etc/rc.local << EOF
+#!/bin/sh
+
+# restore freepbx pm2 processes
+su asterisk -s /var/www/html/admin/modules/pm2/node/node_modules/pm2/bin/pm2 update
+EOF
+    # fix systemd.service files
+    wget --quiet $URL/installer_ubuntu/etc-config/asterisk.service -O /lib/systemd/system/asterisk.service
+    wget --quiet $URL/installer_ubuntu/etc-config/rc-local.service -O /lib/systemd/system/rc-local.service
+    systemctl daemon-reload
 }
 
 function configure_firewall() {
