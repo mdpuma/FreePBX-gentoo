@@ -342,10 +342,10 @@ function install_pkg() {
 }
 
 function install_node_exporter() {
-	URL=http://icinga.iphost.md/download/node_exporter-1.5.0.linux-amd64.tar.gz
-	wget -q -O /tmp/node_exporter-1.5.0.linux-amd64.tar.gz $URL
-	tar -x -C /tmp -f /tmp/node_exporter-1.5.0.linux-amd64.tar.gz
-	cp /tmp/node_exporter-1.5.0.linux-amd64/node_exporter /usr/bin/node_exporter
+	URL=https://github.com/prometheus/node_exporter/releases/download/v1.9.1/node_exporter-1.9.1.linux-amd64.tar.gz
+	wget -q -O /tmp/node_exporter-1.9.1.linux-amd64.tar.gz $URL
+	tar -x -C /tmp -f /tmp/node_exporter-1.9.1.linux-amd64.tar.gz
+	cp /tmp/node_exporter-1.9.1.linux-amd64/node_exporter /usr/bin/node_exporter
 	chmod +x /usr/bin/node_exporter
 	
 	useradd -s /bin/false prometheus
