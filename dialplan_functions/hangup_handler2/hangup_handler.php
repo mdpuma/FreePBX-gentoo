@@ -45,27 +45,28 @@ $config = array(
     'telegram' => array(
         'default_destination' => '',
         'departments' => [
-             'tech' => ''
+//             'tech' => '',
         ]
     ),
     'slack' => array(
-		    'default_destination' => ''
+		    'default_destination' => '',
 		    'departments' => [
-	             'tech' => ''
-	       ]
-	  ),
-	  'teams' => array(
-		    'default_destination' => 'https://...',
-		    'departments' => [
-			    'tech'	=> 'https://...',
-		    ]
-	  ),
-    'whmcs' => array(
-        'default_destination' => 'https://...',
-        'departments' => [
-          'default' => '' // identifier
-        ]
-    ),
+	             'tech' => '',
+	        ]
+	),
+	'teams' => array(
+		'default_destination' => 'https://...',
+		'departments' => [
+			'tech'	=> 'https://...',
+		]
+	),
+  'whmcs' => array(
+    'default_destination' => 'apeluri-cascati',
+    'whmcs_url' => 'https://...',
+    'departments' => [
+      'neselectat' => 'apeluri-cascati',
+    ]
+  ),
     'debug' => 1,
 );
 
@@ -83,6 +84,7 @@ $o = getopt('', array(
     'dst:',
     'disposition:',
     'department:',
+    'title:',
     'message:',
     'identifier:'
 ));
@@ -137,9 +139,10 @@ switch($o['action']) {
 	}
 	case 'send_message': {
 
-// 		$hangup_handler->send_telegram_msg($o['department'], "Intrare apel pe numarul ${o['did']} de la ${o['src']} (${o['srcname']})");
+ 		$hangup_handler->send_telegram_msg($o['department'], "Intrare apel pe numarul ${o['did']} de la ${o['src']} (${o['srcname']})");
 // 		$hangup_handler->send_slack_msg($o['department'], $o['message']);
-		$hangup_handler->send_mteams_message($o['department'], $o['src'], $o['srcname'], $o['did'], $o['message']);
+//		$hangup_handler->send_mteams_message($o['department'], $o['src'], $o['srcname'], $o['did'], $o['message']);
+//    $hangup_handler->send_whmcs_webhook($o['identifier'], $o['department'], $o['src'], $o['srcname'], $o['did'], $o['message'], $o['title']);
 		break;
 	}
 }

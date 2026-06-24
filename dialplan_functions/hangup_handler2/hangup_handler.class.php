@@ -153,9 +153,13 @@ class hangup_handler {
 		curl_close($ch); 
 	}
 
-	public function send_whmcs_webhook($identifier, $department = 'neselectat', $number, $name, $did, $mesaj='Apel pierdut, trebuie retelefonat') {
-		$webhook_url = $this->get_destination('whmcs', $department);
+	public function send_whmcs_webhook($identifier = null, $department = 'neselectat', $number, $name, $did, $mesaj='Apel pierdut, trebuie retelefonat', $title='Apel pierdut') {
+		$webhook_url = $this->config['whmcs']['whmcs_url'];
 		
+    if($identifier == null) {
+       $identifier = $this->get_destination('whmcs', $department);
+    }
+
 		$body = array();
 		$body['callerid'] = $number;
     $body['called'] = $did;
@@ -164,7 +168,7 @@ class hangup_handler {
     $body['department_text'] = 'Departament';
     $body['department_value'] = $department;
     $body['notification_identifier'] = $identifier;
-    $body['title'] = "Apel pierdut";
+    $body['title'] = $title;
     $body['custom_message'] = $mesaj;
 		$json_encoded = json_encode($body);
 		
@@ -177,7 +181,6 @@ class hangup_handler {
 
 		$result = curl_exec($ch); 
 		var_dump(curl_error($ch));
-    var_dump($result);
     var_dump($json_encoded);
 		curl_close($ch); 
 	}
