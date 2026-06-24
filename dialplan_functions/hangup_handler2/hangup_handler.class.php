@@ -5,7 +5,7 @@ require_once 'PHPMailer/class.smtp.php';
 
 class hangup_handler {
 	private $config = null;
-	private $default_teams_card = '{"summary":"Apel pierdut","themeColor":"0078D7","@type":"MessageCard","sections":[{"facts":[{"name":"Numar client:","value":"null"},{"name":"Nume client:","value":"null"},{"name":"Numar companie:","value":"022011011"},{"name":"Departament selectat:","value":"Oh yaya"}],"text":"Apel pierdut, trebuie retelefonat"}]}';
+	private $default_teams_card = '{"summary":"Apel pierdut","themeColor":"0078D7","@context": "http://schema.org/extensions","@type":"MessageCard","sections":[{"facts":[{"name":"Numar client:","value":"null"},{"name":"Nume client:","value":"null"},{"name":"Numar companie:","value":"022011011"},{"name":"Departament selectat:","value":"Oh yaya"}],"text":"Apel pierdut, trebuie retelefonat"}]}';
 	
 	function __construct($config) {
 		$this->config = $config;
@@ -141,7 +141,7 @@ class hangup_handler {
 		$json_encoded = json_encode($txt);
 		var_dump($json_encoded);
 		
-		$ch = curl_init();
+		$ch = curl_init(); 
         curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json"));
 		curl_setopt($ch, CURLOPT_URL, $webhook_url); 
 		curl_setopt($ch, CURLOPT_POST, 1);
@@ -150,6 +150,35 @@ class hangup_handler {
 
 		$result = curl_exec($ch); 
 		var_dump(curl_error($ch));
+		curl_close($ch); 
+	}
+
+	public function send_whmcs_webhook($identifier, $department = 'neselectat', $number, $name, $did, $mesaj='Apel pierdut, trebuie retelefonat') {
+		$webhook_url = $this->get_destination('whmcs', $department);
+		
+		$body = array();
+		$body['callerid'] = $number;
+    $body['called'] = $did;
+    $body['callername_text'] = 'Nume client';
+    $body['callername_value'] = $name;
+    $body['department_text'] = 'Departament';
+    $body['department_value'] = $department;
+    $body['notification_identifier'] = $identifier;
+    $body['title'] = "Apel pierdut";
+    $body['custom_message'] = $mesaj;
+		$json_encoded = json_encode($body);
+		
+		$ch = curl_init();
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json"));
+		curl_setopt($ch, CURLOPT_URL, $webhook_url); 
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $json_encoded);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+
+		$result = curl_exec($ch); 
+		var_dump(curl_error($ch));
+    var_dump($result);
+    var_dump($json_encoded);
 		curl_close($ch); 
 	}
 	

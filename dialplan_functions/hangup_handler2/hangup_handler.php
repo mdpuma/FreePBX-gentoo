@@ -45,21 +45,27 @@ $config = array(
     'telegram' => array(
         'default_destination' => '',
         'departments' => [
-// 			'tech' => '',
+             'tech' => ''
         ]
     ),
     'slack' => array(
-		'default_destination' => '', // pentru departament vinzari
-		'departments' => [
-// 	             'tech' => '',
-		]
-	),
-	'teams' => array(
-		'default_destination' => '',
-		'departments' => [
-			'tech' => 'http://..'
-		]
-	),
+		    'default_destination' => ''
+		    'departments' => [
+	             'tech' => ''
+	       ]
+	  ),
+	  'teams' => array(
+		    'default_destination' => 'https://...',
+		    'departments' => [
+			    'tech'	=> 'https://...',
+		    ]
+	  ),
+    'whmcs' => array(
+        'default_destination' => 'https://...',
+        'departments' => [
+          'default' => '' // identifier
+        ]
+    ),
     'debug' => 1,
 );
 
@@ -78,6 +84,7 @@ $o = getopt('', array(
     'disposition:',
     'department:',
     'message:',
+    'identifier:'
 ));
 
 // +------------------------------+//
@@ -122,16 +129,17 @@ switch($o['action']) {
 		$hangup_handler->check_is_missing($o);
 
 //		send_missed_call_email(get_email_destination($o['department']));
-		$hangup_handler->send_telegram_msg($o['department'], $hangup_handler->get_missedcall_template($o));
+ 		$hangup_handler->send_telegram_msg($o['department'], $hangup_handler->get_missedcall_template($o));
 // 		$hangup_handler->send_slack_msg($o['department'], $hangup_handler->get_missedcall_template($o));
-// 		$hangup_handler->send_mteams_message($o['department'], $o['src'], $o['srcname'], $o['did']);
+//		$hangup_handler->send_mteams_message($o['department'], $o['src'], $o['srcname'], $o['did']);
+//    $hangup_handler->send_whmcs_webhook($o['identifier'], $o['department'], $o['src'], $o['srcname'], $o['did']);
 		break;
 	}
 	case 'send_message': {
 
-		$hangup_handler->send_telegram_msg($o['department'], "Intrare apel pe numarul ${o['did']} de la ${o['src']} (${o['srcname']})");
+// 		$hangup_handler->send_telegram_msg($o['department'], "Intrare apel pe numarul ${o['did']} de la ${o['src']} (${o['srcname']})");
 // 		$hangup_handler->send_slack_msg($o['department'], $o['message']);
-// 		$hangup_handler->send_mteams_message($o['department'], $o['src'], $o['srcname'], $o['did'], $o['message']);
+		$hangup_handler->send_mteams_message($o['department'], $o['src'], $o['srcname'], $o['did'], $o['message']);
 		break;
 	}
 }
