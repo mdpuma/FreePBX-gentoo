@@ -163,10 +163,12 @@ class hangup_handler {
 		$body = array();
 		$body['callerid'] = $number;
     $body['called'] = $did;
-    $body['callername_text'] = 'Nume client';
+    $body['callername_text'] = 'Nume Client';
     $body['callername_value'] = $name;
     $body['department_text'] = 'Departament';
     $body['department_value'] = $department;
+    $body['department_text'] = 'Numar companie';
+    $body['department_value'] = $did;
     $body['notification_identifier'] = $identifier;
     $body['title'] = $title;
     $body['custom_message'] = $mesaj;
