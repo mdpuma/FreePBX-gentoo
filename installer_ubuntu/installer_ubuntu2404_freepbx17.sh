@@ -7,7 +7,7 @@
 
 URL="https://raw.githubusercontent.com/mdpuma/FreePBX-gentoo/master"
 DBPASS="$(openssl rand -base64 32 | md5sum |cut -d ' ' -f1)"
-DOMAIN='sip13711.iphost.md'
+DOMAIN='sip14386.iphost.md'
 EMAIL='admin@iphost.md'
 
 # clean mysql config
@@ -29,7 +29,7 @@ function prestage() {
 	systemctl stop apparmor
 	
 	apt-get install -y software-properties-common
-	add-apt-repository ppa:ondrej/php < /dev/null
+	#add-apt-repository ppa:ondrej/php < /dev/null
 	apt-get update && apt-get upgrade -y
 	
 	mkdir /run/php -p 
@@ -40,8 +40,8 @@ function prestage() {
 	curl sox mpg123 sqlite3 git uuid libodbc2 unixodbc \
 	asterisk asterisk-core-sounds-en-wav asterisk-modules \
 	asterisk-mysql asterisk-moh-opsound-wav \
-	php8.2 php8.2-cgi php8.2-cli php8.2-curl php8.2-fpm php8.2-gd php8.2-mbstring \
-	php8.2-mysql php8.2-odbc php8.2-xml php8.2-bcmath php-pear libicu-dev gcc \
+	php8.3 php8.3-cgi php8.3-cli php8.3-curl php8.3-fpm php8.3-gd php8.3-mbstring \
+	php8.3-mysql php8.3-odbc php8.3-xml php8.3-bcmath php-pear libicu-dev gcc \
 	g++ make pkg-config exim4 sngrep"
   
 	sudo apt-get install -y ca-certificates gnupg
@@ -61,7 +61,7 @@ function prestage() {
 }
 
 function configure_phpfpm() {
-	DIR=/etc/php/8.2
+	DIR=/etc/php/8.3
     if [ ! -d $DIR ]; then
         echo "configure_phpfpm() directory $DIR doesn't exists!"
         exit 1
@@ -69,14 +69,14 @@ function configure_phpfpm() {
     wget --quiet $URL/installer_ubuntu/etc-config/php-fpm.conf -O $DIR/fpm/php-fpm.conf
     wget --quiet $URL/installer_ubuntu/etc-config/php.ini.txt -O $DIR/fpm/php.ini
     wget --quiet $URL/installer_ubuntu/etc-config/php.ini.txt -O $DIR/cli/php.ini
-    systemctl restart php8.2-fpm
+    systemctl restart php8.3-fpm
 }
 
 function configure_autostart() {
 	systemctl enable nginx
 	systemctl enable mariadb
 	systemctl enable asterisk
-	systemctl enable php8.2-fpm
+	systemctl enable php8.3-fpm
 }
 
 function configure_mysql() {
